@@ -1,12 +1,15 @@
 # Week NN (dd/mm – dd/mm)
 
-## Gedaan deze week
+## Wat is af
 - [x] ... (wie)
 
-## Nog niet af / problemen
+## Problemen / niet gelukt
 - ...
 
-## Volgende week
+## Tegen volgende week
+- [ ] ... (wie)
+
+## Tegen de week erna
 - [ ] ... (wie)
 
 ## Vragen voor de docent
