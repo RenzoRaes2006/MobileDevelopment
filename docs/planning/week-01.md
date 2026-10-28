@@ -2,7 +2,7 @@
 
 ## Gedaan deze week
 - [x] Opgave doorgenomen, roadmap tot 6 januari opgesteld (Marwan)
-- [ ] OSM_starter in de GitHub-repo gezet en werkend (Marwan)
+- [x] OSM_starter in de GitHub-repo gezet en werkend (Marwan)
 - [ ] Firebase-project aangemaakt: Authentication (e-mail/wachtwoord) + Firestore + security rules, Marwan toegevoegd (Renzo)
 - [ ] Renzo heeft gepulld en kan de app starten (Renzo)
 
