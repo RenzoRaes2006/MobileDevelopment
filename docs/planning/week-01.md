@@ -9,8 +9,8 @@
 
 ## Tegen volgende week
 - [x] OSM_starter in de GitHub-repo, package `be.ap.laatsteronde`, app start (Marwan) — gebouwd, getest in de emulator en gepusht (branch `feature-setup-firebase`, nog geen pull request)
-- [ ] Firebase-project: Authentication (e-mail/wachtwoord) + Firestore + security rules, Marwan toegevoegd (Renzo)
-- [ ] Allebei kunnen we de app builden en starten (samen)
+- [x] Firebase-project: Authentication (e-mail/wachtwoord) + Firestore + security rules, Marwan toegevoegd (Renzo)
+- [x] Allebei kunnen we de app builden en starten (samen)
 
 ## Tegen de week erna
 - [ ] Registreren met rol (A1)
