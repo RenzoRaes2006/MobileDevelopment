@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">Laatste Ronde</string>
+
+    <!-- Register screen (A1) -->
+    <string name="register_title">Account aanmaken</string>
+    <string name="label_name">Naam</string>
+    <string name="label_email">E-mail</string>
+    <string name="label_password">Wachtwoord</string>
+    <string name="label_role">Ik ben een…</string>
+    <string name="role_customer">Klant</string>
+    <string name="role_merchant">Handelaar</string>
+    <string name="button_register">Registreren</string>
+
+    <!-- Error messages -->
+    <string name="error_name_empty">Vul je naam in.</string>
+    <string name="error_email_invalid">Vul een geldig e-mailadres in.</string>
+    <string name="error_password_too_short">Je wachtwoord moet minstens 6 tekens hebben.</string>
+    <string name="error_role_missing">Kies of je klant of handelaar bent.</string>
+    <string name="error_email_in_use">Dit e-mailadres is al in gebruik.</string>
+    <string name="error_no_internet">Geen internetverbinding. Probeer het opnieuw.</string>
+    <string name="error_register_failed">Registreren is mislukt. Probeer het opnieuw.</string>
 </resources>

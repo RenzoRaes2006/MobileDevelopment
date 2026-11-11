@@ -15,6 +15,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import be.ap.laatsteronde.ui.AppNavigation
 import be.ap.laatsteronde.ui.theme.OSMTheme
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             OSMTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    MapScreen(modifier = Modifier.safeDrawingPadding())
+                    AppNavigation(modifier = Modifier.safeDrawingPadding())
                 }
             }
         }
