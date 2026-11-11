@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: true when the request comes from a signed-in user.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: true when the signed-in user owns the document with this uid.
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // User profiles: one document per Firebase Auth user, keyed by uid.
+    match /users/{uid} {
+      // Only the owner can read their own profile.
+      allow read: if isOwner(uid);
+
+      // The owner can create their own profile, and it must contain a string role.
+      allow create: if isOwner(uid)
+                    && request.resource.data.role is string;
+
+      // The owner can update their profile, but may not change their role.
+      allow update: if isOwner(uid)
+                    && request.resource.data.role == resource.data.role;
+
+      // Profiles cannot be deleted from the client.
+      allow delete: if false;
+    }
+
+    // Everything else is denied by default (no other match blocks grant access).
+  }
+}
