@@ -59,6 +59,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    // Navigation between screens (Navigation Compose).
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+    // viewModel() inside composables.
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+    // await() on Firebase Tasks instead of callbacks.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

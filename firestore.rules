@@ -18,9 +18,12 @@ service cloud.firestore {
       // Only the owner can read their own profile.
       allow read: if isOwner(uid);
 
-      // The owner can create their own profile, and it must contain a string role.
+      // The owner can create their own profile with a name, an email
+      // and a role that is either "customer" or "merchant".
       allow create: if isOwner(uid)
-                    && request.resource.data.role is string;
+                    && request.resource.data.name is string
+                    && request.resource.data.email is string
+                    && request.resource.data.role in ['customer', 'merchant'];
 
       // The owner can update their profile, but may not change their role.
       allow update: if isOwner(uid)
