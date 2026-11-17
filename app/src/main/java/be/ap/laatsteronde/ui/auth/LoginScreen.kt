@@ -84,6 +84,9 @@ private fun LoginContent(
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Show the message under the field it is about; every other error belongs to the password field.
+    val emailHasError = state.errorMessage == R.string.error_email_invalid
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -111,6 +114,7 @@ private fun LoginContent(
             onValueChange = onEmailChange,
             singleLine = true,
             enabled = !state.isLoading,
+            isError = emailHasError,
             shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -118,6 +122,7 @@ private fun LoginContent(
             ),
             modifier = Modifier.fillMaxWidth()
         )
+        if (emailHasError) ErrorMessage(R.string.error_email_invalid)
 
         Spacer(Modifier.size(16.dp))
         FieldLabel(R.string.label_password)
@@ -126,7 +131,7 @@ private fun LoginContent(
             onValueChange = onPasswordChange,
             singleLine = true,
             enabled = !state.isLoading,
-            isError = state.errorMessage != null,
+            isError = state.errorMessage != null && !emailHasError,
             shape = RoundedCornerShape(12.dp),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
@@ -137,8 +142,8 @@ private fun LoginContent(
             modifier = Modifier.fillMaxWidth()
         )
 
-        state.errorMessage?.let { message ->
-            ErrorMessage(message)
+        if (!emailHasError) {
+            state.errorMessage?.let { message -> ErrorMessage(message) }
         }
 
         Button(

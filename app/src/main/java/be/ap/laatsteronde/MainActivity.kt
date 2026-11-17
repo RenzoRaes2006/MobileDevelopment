@@ -3,8 +3,10 @@ package be.ap.laatsteronde
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -29,6 +31,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Draws behind the system bars and picks light or dark status bar icons to match the theme.
+        enableEdgeToEdge()
 
         Configuration.getInstance().apply {
             load(applicationContext, getSharedPreferences("osmdroid", MODE_PRIVATE))
@@ -41,7 +45,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OSMTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                // Use the theme's background color (cream / dark green), not the white card surface.
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     AppNavigation(modifier = Modifier.safeDrawingPadding())
                 }
             }
