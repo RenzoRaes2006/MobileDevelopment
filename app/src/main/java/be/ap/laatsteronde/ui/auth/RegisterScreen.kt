@@ -36,15 +36,15 @@ import be.ap.laatsteronde.data.UserRole
  */
 @Composable
 fun RegisterScreen(
-    onRegistered: () -> Unit,
+    onRegistered: (UserRole) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Navigate away once, as soon as registration succeeded.
+    // Navigate away once, as soon as registration succeeded. The chosen role decides where we go.
     LaunchedEffect(state.isRegistered) {
-        if (state.isRegistered) onRegistered()
+        if (state.isRegistered) state.role?.let(onRegistered)
     }
 
     Column(

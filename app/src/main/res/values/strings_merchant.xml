@@ -1,0 +1,5 @@
+<resources>
+    <!-- Merchant home (placeholder until the shop screens exist) -->
+    <string name="merchant_home_placeholder">Hier komt straks jouw winkel en je pakketten.</string>
+    <string name="merchant_logout">Uitloggen</string>
+</resources>

@@ -1,46 +1,94 @@
 package be.ap.laatsteronde.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import be.ap.laatsteronde.MapScreen
+import be.ap.laatsteronde.ui.auth.LoginScreen
 import be.ap.laatsteronde.ui.auth.RegisterScreen
+import be.ap.laatsteronde.ui.customer.CustomerHomeScreen
+import be.ap.laatsteronde.ui.merchant.MerchantHomeScreen
 
 /** Route names of all screens. */
 object Routes {
+    const val START = "start"
+    const val LOGIN = "login"
     const val REGISTER = "register"
-    const val MAP = "map"
+    const val CUSTOMER_HOME = "customer_home"
+    const val MERCHANT_HOME = "merchant_home"
 }
 
 /**
  * All screens of the app and how you move between them.
- * For now (A1) the app starts on the register screen; login and the
- * start screen per role follow in A2.
+ * The app opens on [Routes.START], which checks who is signed in and
+ * forwards to the login screen or to the home screen of the user's role.
  */
 @Composable
-fun AppNavigation(modifier: Modifier = Modifier) {
+fun AppNavigation(
+    modifier: Modifier = Modifier,
+    sessionViewModel: SessionViewModel = viewModel()
+) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = Routes.REGISTER,
+        startDestination = Routes.START,
         modifier = modifier
     ) {
+        composable(Routes.START) {
+            val startRoute by sessionViewModel.startRoute.collectAsStateWithLifecycle()
+            // Leave the start screen once we know where to go, and remove it from the back stack.
+            LaunchedEffect(startRoute) {
+                startRoute?.let { navController.navigateAndClear(it, from = Routes.START) }
+            }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                onLoggedIn = { role ->
+                    navController.navigateAndClear(homeRouteFor(role), from = Routes.LOGIN)
+                },
+                onRegisterClick = { navController.navigate(Routes.REGISTER) }
+            )
+        }
         composable(Routes.REGISTER) {
             RegisterScreen(
-                onRegistered = {
+                onRegistered = { role ->
                     // Remove the register screen from the back stack,
                     // so the back button does not return to it.
-                    navController.navigate(Routes.MAP) {
-                        popUpTo(Routes.REGISTER) { inclusive = true }
-                    }
+                    navController.navigateAndClear(homeRouteFor(role), from = Routes.REGISTER)
                 }
             )
         }
-        composable(Routes.MAP) {
-            MapScreen()
+        composable(Routes.CUSTOMER_HOME) {
+            CustomerHomeScreen(onLogout = { logout(navController, sessionViewModel) })
+        }
+        composable(Routes.MERCHANT_HOME) {
+            MerchantHomeScreen(onLogout = { logout(navController, sessionViewModel) })
         }
     }
+}
+
+private fun logout(navController: NavHostController, sessionViewModel: SessionViewModel) {
+    sessionViewModel.logout()
+    // Clear the whole back stack, so the back button cannot return to a screen of the old user.
+    navController.navigate(Routes.LOGIN) {
+        popUpTo(navController.graph.id) { inclusive = true }
+    }
+}
+
+private fun NavHostController.navigateAndClear(route: String, from: String) {
+    navigate(route) { popUpTo(from) { inclusive = true } }
 }
