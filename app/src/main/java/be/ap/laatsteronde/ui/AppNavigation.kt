@@ -69,7 +69,8 @@ fun AppNavigation(
                     // Remove the register screen from the back stack,
                     // so the back button does not return to it.
                     navController.navigateAndClear(homeRouteFor(role), from = Routes.REGISTER)
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
         composable(Routes.CUSTOMER_HOME) {

@@ -9,8 +9,12 @@ import androidx.compose.runtime.Composable
 private val DarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
     onPrimary = DarkBackground,
+    primaryContainer = DarkSelectedTint,
+    onPrimaryContainer = DarkText,
     secondary = DarkCarrot,
     onSecondary = DarkBackground,
+    secondaryContainer = NeutralIconBox,
+    onSecondaryContainer = NeutralIconStroke,
     tertiary = DarkCarrot,
     background = DarkBackground,
     onBackground = DarkText,
@@ -18,6 +22,12 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = DarkText,
     surfaceVariant = DarkSurface,
     onSurfaceVariant = DarkTextSoft,
+    // Material's default container colors are purple-tinted; use palette colors instead.
+    surfaceContainerLowest = DarkBackground,
+    surfaceContainerLow = DarkSurface,
+    surfaceContainer = DarkSurface,
+    surfaceContainerHigh = DarkSurface,
+    surfaceContainerHighest = DarkSurface,
     outline = DarkTextSoft,
     error = ErrorRed
 )
@@ -25,8 +35,12 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = ForestGreen,
     onPrimary = SurfaceWhite,
+    primaryContainer = SelectedTint,
+    onPrimaryContainer = TextDark,
     secondary = CarrotOrange,
     onSecondary = TextDark,
+    secondaryContainer = NeutralIconBox,
+    onSecondaryContainer = NeutralIconStroke,
     tertiary = CarrotOrange,
     background = BackgroundCream,
     onBackground = TextDark,
@@ -34,6 +48,12 @@ private val LightColorScheme = lightColorScheme(
     onSurface = TextDark,
     surfaceVariant = Kraft,
     onSurfaceVariant = TextSoft,
+    // Material's default container colors are purple-tinted; use palette colors instead.
+    surfaceContainerLowest = SurfaceWhite,
+    surfaceContainerLow = SurfaceWhite,
+    surfaceContainer = SurfaceWhite,
+    surfaceContainerHigh = SurfaceWhite,
+    surfaceContainerHighest = Kraft,
     outline = FieldBorder,
     error = ErrorRed
 )

@@ -47,6 +47,11 @@ class UserRepository(
         auth.signInWithEmailAndPassword(email, password).await()
     }
 
+    /** Sends Firebase's "reset your password" e-mail. Firebase does not say if the address exists. */
+    suspend fun sendPasswordReset(email: String) {
+        auth.sendPasswordResetEmail(email).await()
+    }
+
     fun logout() = auth.signOut()
 
     /** Firebase remembers the session on the device, so this is also true after a restart. */

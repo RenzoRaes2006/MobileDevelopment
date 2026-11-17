@@ -16,6 +16,16 @@ val BackgroundCream = Color(0xFFF7F6F0)
 val SurfaceWhite = Color(0xFFFFFFFF)
 val ErrorRed = Color(0xFFB3261E)
 
+// Floating navigation bar of the customer (Figma "FloatingNavBar").
+val NavBarBackground = Color(0xFF1B1F1A)
+val NavBarInactive = Color(0xFFC9D4CB)
+val ProfileButtonBorder = Color(0xFFE4E2D8)
+
+// Role cards on the register screen (from the Figma): tint of the chosen card and the neutral icon box.
+val SelectedTint = Color(0xFFE6F1E8)
+val NeutralIconBox = Color(0xFFECEBE2)
+val NeutralIconStroke = Color(0xFF3C4439)
+
 // Dark mode
 val DarkBackground = Color(0xFF101713)
 val DarkSurface = Color(0xFF1A241D)
@@ -23,3 +33,5 @@ val DarkPrimary = Color(0xFF7FCB8E)
 val DarkCarrot = Color(0xFFF59A50)
 val DarkText = Color(0xFFEEF2EC)
 val DarkTextSoft = Color(0xFFA8B3A9)
+// Not in the Figma palette: a slightly lighter green than DarkSurface for the chosen card in dark mode.
+val DarkSelectedTint = Color(0xFF24402C)

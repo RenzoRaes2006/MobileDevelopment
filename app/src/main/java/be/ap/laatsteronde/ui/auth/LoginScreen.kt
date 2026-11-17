@@ -1,8 +1,7 @@
 package be.ap.laatsteronde.ui.auth
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,17 +11,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -38,6 +33,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,6 +41,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.data.UserRole
 import be.ap.laatsteronde.ui.theme.OSMTheme
+
+private val LOGO_SIZE = 220.dp
 
 /**
  * Login screen (A2), following the Figma frame "1 - Login".
@@ -69,6 +67,7 @@ fun LoginScreen(
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onLoginClick = viewModel::login,
+        onForgotPasswordClick = viewModel::onForgotPassword,
         onRegisterClick = onRegisterClick,
         modifier = modifier
     )
@@ -81,6 +80,7 @@ private fun LoginContent(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -90,141 +90,139 @@ private fun LoginContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // fields stay reachable in landscape
-            .padding(24.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Placeholder for the real logo; it is decoration, so no content description.
-        Box(
+        // The form scrolls (landscape, big fonts); the register link stays at the bottom like in the design.
+        Column(
             modifier = Modifier
-                .size(LOGO_SIZE)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(24.dp))
-        )
-        Text(
-            text = stringResource(R.string.login_tagline),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-        )
-
-        FieldLabel(R.string.label_email)
-        OutlinedTextField(
-            value = state.email,
-            onValueChange = onEmailChange,
-            singleLine = true,
-            enabled = !state.isLoading,
-            isError = emailHasError,
-            shape = RoundedCornerShape(12.dp),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-        if (emailHasError) ErrorMessage(R.string.error_email_invalid)
-
-        Spacer(Modifier.size(16.dp))
-        FieldLabel(R.string.label_password)
-        OutlinedTextField(
-            value = state.password,
-            onValueChange = onPasswordChange,
-            singleLine = true,
-            enabled = !state.isLoading,
-            isError = state.errorMessage != null && !emailHasError,
-            shape = RoundedCornerShape(12.dp),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(onDone = { onLoginClick() }),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        if (!emailHasError) {
-            state.errorMessage?.let { message -> ErrorMessage(message) }
-        }
-
-        Button(
-            onClick = onLoginClick,
-            enabled = !state.isLoading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp)
-                .heightIn(min = 52.dp)
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
+            Image(
+                painter = painterResource(R.drawable.logo_full),
+                contentDescription = stringResource(R.string.login_logo_description),
+                modifier = Modifier.size(LOGO_SIZE)
+            )
+            Text(
+                text = stringResource(R.string.login_tagline),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            LabeledTextField(
+                label = R.string.label_email,
+                value = state.email,
+                onValueChange = onEmailChange,
+                enabled = !state.isLoading,
+                isError = emailHasError,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
                 )
-            } else {
-                Text(stringResource(R.string.button_login), style = MaterialTheme.typography.titleMedium)
+            )
+            if (emailHasError) FieldError(R.string.error_email_invalid)
+
+            Spacer(Modifier.size(16.dp))
+            LabeledTextField(
+                label = R.string.label_password,
+                value = state.password,
+                onValueChange = onPasswordChange,
+                enabled = !state.isLoading,
+                isError = state.errorMessage != null && !emailHasError,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = { onLoginClick() })
+            )
+            if (!emailHasError) {
+                state.errorMessage?.let { FieldError(it) }
             }
+            state.infoMessage?.let { message ->
+                Text(
+                    text = stringResource(message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .semantics { liveRegion = LiveRegionMode.Polite }
+                )
+            }
+
+            UnderlinedLink(
+                text = R.string.login_forgot_password,
+                onClick = onForgotPasswordClick,
+                enabled = !state.isLoading,
+                modifier = Modifier.align(Alignment.End)
+            )
+
+            Button(
+                onClick = onLoginClick,
+                enabled = !state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .heightIn(min = 52.dp)
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(stringResource(R.string.button_login), style = MaterialTheme.typography.labelLarge)
+                }
+            }
+
         }
 
-        Spacer(Modifier.size(32.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             Text(
                 text = stringResource(R.string.login_no_account),
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            TextButton(onClick = onRegisterClick, enabled = !state.isLoading) {
-                Text(
-                    text = stringResource(R.string.login_register_link),
-                    style = MaterialTheme.typography.titleSmall
-                )
-            }
+            UnderlinedLink(
+                text = R.string.login_register_link,
+                onClick = onRegisterClick,
+                enabled = !state.isLoading
+            )
         }
     }
 }
 
+/** A green, underlined link as in the Figma, with a touch target of at least 48 dp. */
 @Composable
-private fun FieldLabel(label: Int) {
-    Text(
-        text = stringResource(label),
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 6.dp)
-    )
-}
-
-/** Error text with an icon, so the message does not rely on the red color alone. */
-@Composable
-private fun ErrorMessage(message: Int) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-            .semantics { liveRegion = LiveRegionMode.Polite } // screen readers announce it
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Warning,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(18.dp)
-        )
+private fun UnderlinedLink(
+    text: Int,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    TextButton(onClick = onClick, enabled = enabled, modifier = modifier.heightIn(min = 48.dp)) {
         Text(
-            text = stringResource(message),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error
+            text = stringResource(text),
+            style = MaterialTheme.typography.titleSmall,
+            textDecoration = TextDecoration.Underline
         )
     }
 }
-
-private val LOGO_SIZE = 220.dp
 
 @Preview(showBackground = true)
 @Composable
 private fun LoginContentPreview() {
     OSMTheme(darkTheme = false) {
-        LoginContent(LoginUiState(email = "naam@example.com"), {}, {}, {}, {})
+        LoginContent(LoginUiState(email = "naam@example.com"), {}, {}, {}, {}, {})
     }
 }
 
@@ -238,7 +236,7 @@ private fun LoginContentErrorPreview() {
                 password = "123456",
                 errorMessage = R.string.error_wrong_credentials
             ),
-            {}, {}, {}, {}
+            {}, {}, {}, {}, {}
         )
     }
 }

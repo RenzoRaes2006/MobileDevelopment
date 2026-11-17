@@ -6,16 +6,25 @@
     <string name="label_name">Naam</string>
     <string name="label_email">E-mail</string>
     <string name="label_password">Wachtwoord</string>
-    <string name="label_role">Ik ben een…</string>
+    <string name="register_subtitle">Kies hoe je Laatste Ronde gebruikt.</string>
+    <string name="register_back">Terug naar inloggen</string>
+    <string name="register_password_hint">Minstens 6 tekens.</string>
+    <string name="label_role">Ik ben een</string>
     <string name="role_customer">Klant</string>
+    <string name="role_customer_description">Pakketten zoeken en reserveren</string>
     <string name="role_merchant">Handelaar</string>
-    <string name="button_register">Registreren</string>
+    <string name="role_merchant_description">Mijn overschot aanbieden</string>
+    <string name="role_selected">✓ Gekozen</string>
+    <string name="button_register">Account aanmaken</string>
 
     <!-- Login screen (A2) -->
     <string name="login_tagline">Red eten van de dag, aan een kleine prijs.</string>
     <string name="button_login">Inloggen</string>
     <string name="login_no_account">Nog geen account?</string>
     <string name="login_register_link">Registreren</string>
+    <string name="login_forgot_password">Wachtwoord vergeten?</string>
+    <string name="info_reset_sent">Als dit e-mailadres bij ons bekend is, krijg je een e-mail om je wachtwoord opnieuw in te stellen.</string>
+    <string name="login_logo_description">Logo van Laatste Ronde</string>
 
     <!-- Error messages -->
     <string name="error_name_empty">Vul je naam in.</string>

@@ -43,6 +43,7 @@ data class LoginUiState(
     val password: String = "",
     val isLoading: Boolean = false,
     @StringRes val errorMessage: Int? = null,
+    @StringRes val infoMessage: Int? = null,
     val loggedInRole: UserRole? = null
 )
 
@@ -53,9 +54,36 @@ class LoginViewModel(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    // Each change also clears an old error message.
-    fun onEmailChange(email: String) = _uiState.update { it.copy(email = email, errorMessage = null) }
-    fun onPasswordChange(password: String) = _uiState.update { it.copy(password = password, errorMessage = null) }
+    // Each change also clears an old error or info message.
+    fun onEmailChange(email: String) =
+        _uiState.update { it.copy(email = email, errorMessage = null, infoMessage = null) }
+
+    fun onPasswordChange(password: String) =
+        _uiState.update { it.copy(password = password, errorMessage = null, infoMessage = null) }
+
+    /** "Wachtwoord vergeten?": sends a reset e-mail to the address typed in the e-mail field. */
+    fun onForgotPassword() {
+        val state = _uiState.value
+        if (state.isLoading) return
+
+        if (!EMAIL_REGEX.matches(state.email.trim())) {
+            _uiState.update { it.copy(errorMessage = R.string.error_email_invalid, infoMessage = null) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, infoMessage = null) }
+            try {
+                repository.sendPasswordReset(state.email.trim())
+                // Same message whether or not the address exists, so nobody can probe for accounts.
+                _uiState.update { it.copy(isLoading = false, infoMessage = R.string.info_reset_sent) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = loginErrorMessageFor(e)) }
+            }
+        }
+    }
 
     fun login() {
         val state = _uiState.value
