@@ -41,4 +41,24 @@ class UserRepository(
             throw e
         }
     }
+
+    /** Signs in with e-mail and password. Throws the Firebase exception when it fails. */
+    suspend fun login(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password).await()
+    }
+
+    fun logout() = auth.signOut()
+
+    /** Firebase remembers the session on the device, so this is also true after a restart. */
+    fun isLoggedIn(): Boolean = auth.currentUser != null
+
+    /**
+     * Reads the role from users/{uid} of the signed-in user.
+     * Returns null when nobody is signed in or the profile document is missing.
+     */
+    suspend fun currentRole(): UserRole? {
+        val uid = auth.currentUser?.uid ?: return null
+        val value = firestore.collection("users").document(uid).get().await().getString("role")
+        return UserRole.entries.firstOrNull { it.firestoreValue == value }
+    }
 }

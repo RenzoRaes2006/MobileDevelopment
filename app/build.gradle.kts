@@ -39,6 +39,10 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        // Firebase exceptions call android.text.TextUtils, which does not exist in plain JVM tests.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

@@ -91,6 +91,5 @@ class RegisterViewModel(
 
     private companion object {
         const val MIN_PASSWORD_LENGTH = 6 // Firebase's own minimum
-        val EMAIL_REGEX = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
     }
 }
