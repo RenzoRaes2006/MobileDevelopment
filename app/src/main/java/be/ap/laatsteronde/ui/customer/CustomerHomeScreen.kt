@@ -41,9 +41,11 @@ import androidx.compose.ui.unit.sp
 import be.ap.laatsteronde.MapScreen
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.ui.theme.CarrotOrange
+import be.ap.laatsteronde.ui.theme.DarkNavBarBackground
 import be.ap.laatsteronde.ui.theme.NavBarBackground
 import be.ap.laatsteronde.ui.theme.NavBarInactive
 import be.ap.laatsteronde.ui.theme.OSMTheme
+import be.ap.laatsteronde.ui.theme.isDarkTheme
 import be.ap.laatsteronde.ui.theme.ProfileButtonBorder
 
 /** The four tabs of the customer. The order here is the order in the bar. */
@@ -105,12 +107,13 @@ private fun FloatingNavBar(
     onSelect: (CustomerTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val barColor = if (isDarkTheme()) DarkNavBarBackground else NavBarBackground
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(68.dp)
             .shadow(elevation = 8.dp, shape = RoundedCornerShape(34.dp))
-            .background(NavBarBackground, RoundedCornerShape(34.dp))
+            .background(barColor, RoundedCornerShape(34.dp))
             .padding(horizontal = 8.dp, vertical = 6.dp)
             .selectableGroup()
     ) {

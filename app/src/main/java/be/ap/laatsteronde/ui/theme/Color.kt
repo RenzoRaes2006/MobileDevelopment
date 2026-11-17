@@ -18,6 +18,7 @@ val ErrorRed = Color(0xFFB3261E)
 
 // Floating navigation bar of the customer (Figma "FloatingNavBar").
 val NavBarBackground = Color(0xFF1B1F1A)
+val DarkNavBarBackground = Color(0xFF26332A) // lighter than the dark page, as in the Figma dark mode
 val NavBarInactive = Color(0xFFC9D4CB)
 val ProfileButtonBorder = Color(0xFFE4E2D8)
 
