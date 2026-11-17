@@ -25,6 +25,9 @@
     <string name="login_forgot_password">Wachtwoord vergeten?</string>
     <string name="info_reset_sent">Als dit e-mailadres bij ons bekend is, krijg je een e-mail om je wachtwoord opnieuw in te stellen.</string>
     <string name="login_logo_description">Logo van Laatste Ronde</string>
+    <!-- The two words of the name are separate, so they can get their own color in dark mode. -->
+    <string name="logo_word_first">Laatste</string>
+    <string name="logo_word_second">Ronde</string>
 
     <!-- Error messages -->
     <string name="error_name_empty">Vul je naam in.</string>

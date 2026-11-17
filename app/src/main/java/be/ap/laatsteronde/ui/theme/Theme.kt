@@ -1,10 +1,10 @@
 package be.ap.laatsteronde.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.luminance
 
 private val DarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
@@ -59,9 +59,10 @@ private val LightColorScheme = lightColorScheme(
 )
 
 // No dynamic color on purpose: the app keeps its own Laatste Ronde colors.
+// Light is the default, also when the phone is in dark mode (dark mode is a Should, G4).
 @Composable
 fun OSMTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
@@ -70,3 +71,7 @@ fun OSMTheme(
         content = content
     )
 }
+
+/** True when the dark color scheme is in use, so components can pick matching assets. */
+@Composable
+fun isDarkTheme(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f
