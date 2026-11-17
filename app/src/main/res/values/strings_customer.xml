@@ -5,6 +5,7 @@
     <string name="customer_tab_orders">Bestellingen</string>
     <string name="customer_tab_favorites">Favorieten</string>
     <string name="customer_logout">Uitloggen</string>
+    <string name="customer_profile_menu">Profiel en uitloggen</string>
     <string name="customer_discover_placeholder">Hier komen straks de pakketten in je buurt.</string>
     <string name="customer_orders_placeholder">Hier komen straks je bestellingen.</string>
     <string name="customer_favorites_placeholder">Hier komen straks je favoriete winkels.</string>
