@@ -1,0 +1,11 @@
+<resources>
+    <!-- Customer home (bottom navigation) -->
+    <string name="customer_tab_discover">Ontdekken</string>
+    <string name="customer_tab_map">Kaart</string>
+    <string name="customer_tab_orders">Bestellingen</string>
+    <string name="customer_tab_favorites">Favorieten</string>
+    <string name="customer_logout">Uitloggen</string>
+    <string name="customer_discover_placeholder">Hier komen straks de pakketten in je buurt.</string>
+    <string name="customer_orders_placeholder">Hier komen straks je bestellingen.</string>
+    <string name="customer_favorites_placeholder">Hier komen straks je favoriete winkels.</string>
+</resources>
