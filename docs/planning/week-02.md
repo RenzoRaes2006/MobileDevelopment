@@ -14,8 +14,8 @@
 - Het app-icoon is de Figma-versie "voorlopig"; de Figma vraagt nog een vereenvoudigde versie voor kleine formaten.
 
 ## Tegen volgende week
-- [x] Inloggen/uitloggen + juist startscherm per rol (A2) — op de emulator getest met een klant- en een handelaaraccount (branch `feature-login-per-role`, nog geen PR)
-- [x] Navigatie-skelet: bottom navigation bar voor de klant met Ontdekken, Kaart, Bestellingen, Favorieten (branch `feature-bottom-navigation`)
+- [x] Inloggen/uitloggen + juist startscherm per rol (A2) — op de emulator getest met een klant- en een handelaaraccount (gemerged via PR #3)
+- [x] Navigatie-skelet: bottom navigation bar voor de klant met Ontdekken, Kaart, Bestellingen, Favorieten (gemerged via PR #3)
 - [x] Duidelijke foutmeldingen afwerken: verkeerd wachtwoord, e-mail al in gebruik, geen internet (A3) — in de code en met unit tests; op de emulator gezien: lege/ongeldige invoer en verkeerd e-mailadres of wachtwoord
 
 ## Tegen de week erna
