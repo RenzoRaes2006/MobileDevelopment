@@ -1,6 +1,9 @@
 package be.ap.laatsteronde.ui.auth
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -35,14 +39,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.data.UserRole
+import be.ap.laatsteronde.ui.theme.BackgroundCream
 import be.ap.laatsteronde.ui.theme.OSMTheme
 
-private val LOGO_SIZE = 220.dp
+private val MAX_LOGO_SIZE = 220.dp // size in the Figma
+private val MIN_LOGO_SIZE = 72.dp
+private const val LOGO_HEIGHT_SHARE = 0.28f // of the screen height
 
 /**
  * Login screen (A2), following the Figma frame "1 - Login".
@@ -87,6 +95,10 @@ private fun LoginContent(
     // Show the message under the field it is about; every other error belongs to the password field.
     val emailHasError = state.errorMessage == R.string.error_email_invalid
 
+    // On a low screen (landscape) a big logo would push the fields out of view, so it shrinks.
+    val logoSize = (LocalConfiguration.current.screenHeightDp * LOGO_HEIGHT_SHARE).dp
+        .coerceIn(MIN_LOGO_SIZE, MAX_LOGO_SIZE)
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -103,14 +115,16 @@ private fun LoginContent(
             Image(
                 painter = painterResource(R.drawable.logo_full),
                 contentDescription = stringResource(R.string.login_logo_description),
-                modifier = Modifier.size(LOGO_SIZE)
+                modifier = Modifier
+                    .size(logoSize)
+                    .then(if (isSystemInDarkTheme()) Modifier.cream() else Modifier)
             )
             Text(
                 text = stringResource(R.string.login_tagline),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
 
             LabeledTextField(
@@ -180,17 +194,18 @@ private fun LoginContent(
                     Text(stringResource(R.string.button_login), style = MaterialTheme.typography.labelLarge)
                 }
             }
-
         }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            // With a big font this text wraps; the link keeps its own line instead of breaking mid-word.
             Text(
                 text = stringResource(R.string.login_no_account),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f, fill = false)
             )
             UnderlinedLink(
                 text = R.string.login_register_link,
@@ -200,6 +215,11 @@ private fun LoginContent(
         }
     }
 }
+
+/** The logo has dark green letters, so on a dark page it gets a cream card behind it. */
+private fun Modifier.cream(): Modifier = this
+    .background(BackgroundCream, RoundedCornerShape(24.dp))
+    .padding(8.dp)
 
 /** A green, underlined link as in the Figma, with a touch target of at least 48 dp. */
 @Composable
@@ -213,7 +233,8 @@ private fun UnderlinedLink(
         Text(
             text = stringResource(text),
             style = MaterialTheme.typography.titleSmall,
-            textDecoration = TextDecoration.Underline
+            textDecoration = TextDecoration.Underline,
+            softWrap = false
         )
     }
 }
