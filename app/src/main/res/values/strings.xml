@@ -11,6 +11,12 @@
     <string name="role_merchant">Handelaar</string>
     <string name="button_register">Registreren</string>
 
+    <!-- Login screen (A2) -->
+    <string name="login_tagline">Red eten van de dag, aan een kleine prijs.</string>
+    <string name="button_login">Inloggen</string>
+    <string name="login_no_account">Nog geen account?</string>
+    <string name="login_register_link">Registreren</string>
+
     <!-- Error messages -->
     <string name="error_name_empty">Vul je naam in.</string>
     <string name="error_email_invalid">Vul een geldig e-mailadres in.</string>
