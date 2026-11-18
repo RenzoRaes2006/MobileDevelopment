@@ -2,6 +2,7 @@ package be.ap.laatsteronde.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import be.ap.laatsteronde.data.FirebaseUserRepository
 import be.ap.laatsteronde.data.UserRepository
 import be.ap.laatsteronde.data.UserRole
 import kotlinx.coroutines.CancellationException
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
  * and it signs the user out, so composables never touch Firebase directly.
  */
 class SessionViewModel(
-    private val repository: UserRepository = UserRepository()
+    private val repository: UserRepository = FirebaseUserRepository()
 ) : ViewModel() {
 
     // null = still deciding; otherwise the route to open first.

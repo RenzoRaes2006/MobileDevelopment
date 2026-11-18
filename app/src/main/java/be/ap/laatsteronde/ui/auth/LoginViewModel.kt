@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.data.FirebaseUserRepository
 import be.ap.laatsteronde.data.UserRepository
 import be.ap.laatsteronde.data.UserRole
 import com.google.firebase.FirebaseNetworkException
@@ -48,7 +49,7 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val repository: UserRepository = UserRepository()
+    private val repository: UserRepository = FirebaseUserRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())

@@ -11,19 +11,41 @@ enum class UserRole(val firestoreValue: String) {
 }
 
 /**
+ * What the ViewModels need from the user accounts. It is an interface so a unit test
+ * can use a fake instead of Firebase.
+ */
+interface UserRepository {
+    /** Creates a Firebase Auth account and a profile document. Throws the Firebase exception when it fails. */
+    suspend fun register(name: String, email: String, password: String, role: UserRole)
+
+    /** Signs in with e-mail and password. Throws the Firebase exception when it fails. */
+    suspend fun login(email: String, password: String)
+
+    /** Sends Firebase's "reset your password" e-mail. Firebase does not say if the address exists. */
+    suspend fun sendPasswordReset(email: String)
+
+    fun logout()
+
+    fun isLoggedIn(): Boolean
+
+    /** The role of the signed-in user, or null when nobody is signed in or the profile is missing. */
+    suspend fun currentRole(): UserRole?
+}
+
+/**
  * All Firebase code for user accounts lives here, so ViewModels and screens
  * never talk to Firebase directly.
  */
-class UserRepository(
+class FirebaseUserRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
-) {
+) : UserRepository {
 
     /**
      * Creates a Firebase Auth account and a profile document users/{uid}
      * with name, email and role. Throws the Firebase exception when something fails.
      */
-    suspend fun register(name: String, email: String, password: String, role: UserRole) {
+    override suspend fun register(name: String, email: String, password: String, role: UserRole) {
         val user = auth.createUserWithEmailAndPassword(email, password).await().user
             ?: error("Firebase returned no user after registration")
 
@@ -43,25 +65,25 @@ class UserRepository(
     }
 
     /** Signs in with e-mail and password. Throws the Firebase exception when it fails. */
-    suspend fun login(email: String, password: String) {
+    override suspend fun login(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password).await()
     }
 
     /** Sends Firebase's "reset your password" e-mail. Firebase does not say if the address exists. */
-    suspend fun sendPasswordReset(email: String) {
+    override suspend fun sendPasswordReset(email: String) {
         auth.sendPasswordResetEmail(email).await()
     }
 
-    fun logout() = auth.signOut()
+    override fun logout() = auth.signOut()
 
     /** Firebase remembers the session on the device, so this is also true after a restart. */
-    fun isLoggedIn(): Boolean = auth.currentUser != null
+    override fun isLoggedIn(): Boolean = auth.currentUser != null
 
     /**
      * Reads the role from users/{uid} of the signed-in user.
      * Returns null when nobody is signed in or the profile document is missing.
      */
-    suspend fun currentRole(): UserRole? {
+    override suspend fun currentRole(): UserRole? {
         val uid = auth.currentUser?.uid ?: return null
         val value = firestore.collection("users").document(uid).get().await().getString("role")
         return UserRole.entries.firstOrNull { it.firestoreValue == value }
