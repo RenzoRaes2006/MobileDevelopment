@@ -6,7 +6,6 @@
     <string name="customer_tab_favorites">Favorieten</string>
     <string name="customer_logout">Uitloggen</string>
     <string name="customer_profile_menu">Profiel en uitloggen</string>
-    <string name="customer_discover_placeholder">Hier komen straks de pakketten in je buurt.</string>
     <!-- Header of the Discover screen (Figma "4 - Ontdekken", K2): label, municipality, and the same without a name. -->
     <string name="customer_discover_label">Pakketten in de buurt van</string>
     <string name="customer_discover_label_unknown">Pakketten in</string>

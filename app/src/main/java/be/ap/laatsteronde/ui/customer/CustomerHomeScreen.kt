@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.R
@@ -58,11 +59,25 @@ fun CustomerHomeScreen(
     ),
     discoverViewModel: DiscoverViewModel = viewModel(
         factory = DiscoverViewModel.factory(LocalContext.current)
-    )
+    ),
+    packagesViewModel: CustomerPackagesViewModel = viewModel(factory = CustomerPackagesViewModel.factory())
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(CustomerTab.DISCOVER) }
     val locationState by locationViewModel.uiState.collectAsStateWithLifecycle()
     val municipality by discoverViewModel.municipality.collectAsStateWithLifecycle()
+    val packagesState by packagesViewModel.uiState.collectAsStateWithLifecycle()
+
+    // The packages are read when the app opens and every time the customer comes back to it, so a
+    // package that was just put online shows up.
+    LifecycleResumeEffect(packagesViewModel) {
+        packagesViewModel.load()
+        onPauseOrDispose { }
+    }
+
+    // The list is sorted by the distance from here: the real position, or the place the customer chose.
+    LaunchedEffect(locationState.location) {
+        packagesViewModel.onLocationChanged(locationState.location)
+    }
 
     // The municipality is shared by the Discover tab and the map tab, so it is looked up here.
     // Wait until we know where the customer is (or know that we will not get a position).
@@ -83,6 +98,8 @@ fun CustomerHomeScreen(
             when (selectedTab) {
                 CustomerTab.DISCOVER -> DiscoverScreen(
                     municipality = municipality,
+                    packages = packagesState,
+                    onRetry = packagesViewModel::load,
                     // The municipality was tapped: go to the map, where a tap chooses another place.
                     onChangeLocation = {
                         locationViewModel.onChangeLocation()
