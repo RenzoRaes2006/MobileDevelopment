@@ -110,6 +110,7 @@ fun CustomerHomeScreen(
                 CustomerTab.MAP -> CustomerMapScreen(
                     location = locationState,
                     municipality = municipality,
+                    shops = packagesState.shops,
                     onLocationChosen = locationViewModel::onLocationChosen,
                     onLocateClick = {
                         when (locationState.status) {

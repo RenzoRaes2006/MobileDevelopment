@@ -1,5 +1,7 @@
 package be.ap.laatsteronde.ui.customer
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,11 +23,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -36,14 +40,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.data.Coordinates
+import be.ap.laatsteronde.ui.components.DashedDivider
+import be.ap.laatsteronde.ui.map.MapPin
 import be.ap.laatsteronde.ui.map.MarkerMap
+import be.ap.laatsteronde.ui.theme.CardBorder
+import be.ap.laatsteronde.ui.theme.Kraft
 import be.ap.laatsteronde.ui.theme.TextBody
 import be.ap.laatsteronde.ui.theme.isDarkTheme
 
 /**
  * The map tab (Figma "5 - Kaart"): the map with the position of the customer, a bar with the
- * municipality on top and the round "Naar mijn locatie" button. The shop markers and the popup
- * of the Figma come with the packages in a later week.
+ * municipality on top and the round "Naar mijn locatie" button. Every shop with packages is a price
+ * label ("€4") on the map; a tap on it shows a card with the shop at the bottom. The customer can
+ * only look at it: the button "Bekijk" of the Figma comes with reserving.
  *
  * Without a position (no permission, or not found) a tap on the map chooses a place.
  */
@@ -51,6 +60,7 @@ import be.ap.laatsteronde.ui.theme.isDarkTheme
 fun CustomerMapScreen(
     location: LocationUiState,
     municipality: MunicipalityState,
+    shops: List<ShopOffers>,
     onLocationChosen: (Coordinates) -> Unit,
     onLocateClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -58,6 +68,9 @@ fun CustomerMapScreen(
     val status = location.status
     // Each tap on the locate button moves the map back to the position, also after looking around.
     var recenterKey by rememberSaveable { mutableIntStateOf(0) }
+    // The shop whose card is open. A shop that is no longer in the list (for example after a refresh) closes its card.
+    var selectedShopId by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedShop = shops.firstOrNull { it.shop.ownerId == selectedShopId }
     val canChoose = status == LocationStatus.DENIED ||
         status == LocationStatus.UNAVAILABLE ||
         status == LocationStatus.CHOSEN
@@ -69,6 +82,10 @@ fun CustomerMapScreen(
             centerOn = location.location,
             markerIcon = R.drawable.marker_my_location,
             recenterKey = recenterKey,
+            pins = shops.map { MapPin(it.shop.ownerId, it.shop.details.location, formatPriceShort(it.fromPriceCents)) },
+            selectedPinId = selectedShop?.shop?.ownerId,
+            onPinClick = { selectedShopId = it },
+            onMapTap = { selectedShopId = null },
             onPositionPicked = if (canChoose) onLocationChosen else null,
             modifier = Modifier.fillMaxSize()
         )
@@ -84,14 +101,19 @@ fun CustomerMapScreen(
             MunicipalityBar(
                 title = (municipality as? MunicipalityState.Found)?.name
                     ?: stringResource(R.string.customer_map_title_unknown),
-                subtitle = stringResource(
-                    when (status) {
-                        LocationStatus.FOUND -> R.string.customer_map_sub_found
-                        LocationStatus.CHOSEN -> R.string.customer_map_sub_chosen
-                        LocationStatus.DENIED, LocationStatus.UNAVAILABLE -> R.string.customer_map_sub_default
-                        LocationStatus.UNKNOWN, LocationStatus.LOADING -> R.string.customer_map_sub_searching
-                    }
-                ),
+                subtitle = if (shops.isEmpty()) {
+                    stringResource(
+                        when (status) {
+                            LocationStatus.FOUND -> R.string.customer_map_sub_found
+                            LocationStatus.CHOSEN -> R.string.customer_map_sub_chosen
+                            LocationStatus.DENIED, LocationStatus.UNAVAILABLE -> R.string.customer_map_sub_default
+                            LocationStatus.UNKNOWN, LocationStatus.LOADING -> R.string.customer_map_sub_searching
+                        }
+                    )
+                } else {
+                    // As in the Figma: "4 winkels met pakketten".
+                    pluralStringResource(R.plurals.customer_map_shops, shops.size, shops.size)
+                },
                 modifier = Modifier.weight(1f)
             )
             LocateButton(
@@ -99,6 +121,15 @@ fun CustomerMapScreen(
                     recenterKey++
                     onLocateClick()
                 }
+            )
+        }
+
+        selectedShop?.let { shop ->
+            ShopCard(
+                item = shop,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 108.dp) // above the floating bar
             )
         }
 
@@ -110,6 +141,67 @@ fun CustomerMapScreen(
                     .padding(start = 16.dp, top = 76.dp)
             )
         }
+    }
+}
+
+/**
+ * The card of a shop on the map (Figma "Winkelkaart"): the shop, the distance, the pick-up window,
+ * how many packages are left and the lowest price. Without the button "Bekijk": looking only.
+ */
+@Composable
+private fun ShopCard(item: ShopOffers, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, shape)
+            .border(1.dp, CardBorder, shape)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(Kraft, RoundedCornerShape(12.dp))
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_image),
+                    contentDescription = stringResource(R.string.customer_package_photo),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
+                Text(
+                    text = item.shop.details.name,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = stringResource(
+                        R.string.customer_map_card_info,
+                        formatDistance(item.distanceMeters),
+                        item.pickupFrom,
+                        item.pickupTo,
+                        item.remaining
+                    ),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Normal),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+        DashedDivider(modifier = Modifier.padding(horizontal = 14.dp))
+        Text(
+            text = stringResource(R.string.customer_map_card_from, formatPriceShort(item.fromPriceCents)),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        )
     }
 }
 
