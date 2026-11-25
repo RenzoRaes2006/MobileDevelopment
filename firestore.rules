@@ -52,9 +52,18 @@ service cloud.firestore {
                             && request.resource.data.name is string
                             && request.resource.data.name.size() > 0
                             && request.resource.data.name.size() <= 60
-                            && request.resource.data.address is string
-                            && request.resource.data.address.size() > 0
-                            && request.resource.data.address.size() <= 200
+                            && request.resource.data.category in ['bakker', 'supermarkt', 'restaurant']
+                            && request.resource.data.street is string
+                            && request.resource.data.street.size() > 0
+                            && request.resource.data.street.size() <= 100
+                            && request.resource.data.houseNumber is string
+                            && request.resource.data.houseNumber.size() <= 20
+                            && request.resource.data.postcode is string
+                            && request.resource.data.postcode.size() > 0
+                            && request.resource.data.postcode.size() <= 10
+                            && request.resource.data.municipality is string
+                            && request.resource.data.municipality.size() > 0
+                            && request.resource.data.municipality.size() <= 100
                             && request.resource.data.latitude is number
                             && request.resource.data.latitude >= -90
                             && request.resource.data.latitude <= 90
