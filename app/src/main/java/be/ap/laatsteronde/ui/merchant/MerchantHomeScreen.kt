@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,14 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.ui.components.FloatingNavBar
 import be.ap.laatsteronde.ui.components.NavBarItem
-import be.ap.laatsteronde.ui.customer.ProfileMenuButton
 
 /** The two tabs of the merchant. The order here is the order in the bar. */
 private enum class MerchantTab(@StringRes val label: Int, @DrawableRes val icon: Int) {
@@ -39,8 +35,10 @@ private enum class MerchantTab(@StringRes val label: Int, @DrawableRes val icon:
  */
 @Composable
 fun MerchantHomeScreen(
+    onNewPackage: () -> Unit,
     onLogout: () -> Unit,
-    shopViewModel: ShopViewModel = viewModel(factory = ShopViewModel.factory(LocalContext.current))
+    shopViewModel: ShopViewModel = viewModel(factory = ShopViewModel.factory(LocalContext.current)),
+    todayViewModel: TodayViewModel = viewModel(factory = TodayViewModel.factory())
 ) {
     val state by shopViewModel.uiState.collectAsStateWithLifecycle()
     // null until the shop is loaded; fixed after that, so saving the first shop does not switch the tab.
@@ -60,7 +58,12 @@ fun MerchantHomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (tab) {
-            MerchantTab.TODAY -> TodayPlaceholder(onLogout = onLogout)
+            MerchantTab.TODAY -> TodayScreen(
+                shopName = state.shop?.details?.name,
+                viewModel = todayViewModel,
+                onNewPackage = onNewPackage,
+                onLogout = onLogout
+            )
             MerchantTab.MY_SHOP -> MyShopScreen(viewModel = shopViewModel, onLogout = onLogout)
         }
 
@@ -72,28 +75,6 @@ fun MerchantHomeScreen(
                 .align(Alignment.BottomCenter)
                 .width(270.dp) // width in the Figma: two tabs
                 .padding(bottom = 16.dp)
-        )
-    }
-}
-
-/** "Vandaag" is built in the next step (H3, H4); until then a title and a text. */
-@Composable
-private fun TodayPlaceholder(onLogout: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.merchant_tab_today),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 16.dp, top = 24.dp)
-        )
-        ProfileMenuButton(
-            onLogout = onLogout,
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 26.dp, end = 16.dp)
-        )
-        Text(
-            text = stringResource(R.string.merchant_today_placeholder),
-            modifier = Modifier.align(Alignment.Center)
         )
     }
 }

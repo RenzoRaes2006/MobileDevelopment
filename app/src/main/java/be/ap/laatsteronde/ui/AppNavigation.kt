@@ -18,6 +18,7 @@ import be.ap.laatsteronde.ui.auth.LoginScreen
 import be.ap.laatsteronde.ui.auth.RegisterScreen
 import be.ap.laatsteronde.ui.customer.CustomerHomeScreen
 import be.ap.laatsteronde.ui.merchant.MerchantHomeScreen
+import be.ap.laatsteronde.ui.merchant.NewPackageScreen
 
 /** Route names of all screens. */
 object Routes {
@@ -26,6 +27,7 @@ object Routes {
     const val REGISTER = "register"
     const val CUSTOMER_HOME = "customer_home"
     const val MERCHANT_HOME = "merchant_home"
+    const val NEW_PACKAGE = "new_package"
 }
 
 /**
@@ -77,7 +79,14 @@ fun AppNavigation(
             CustomerHomeScreen(onLogout = { logout(navController, sessionViewModel) })
         }
         composable(Routes.MERCHANT_HOME) {
-            MerchantHomeScreen(onLogout = { logout(navController, sessionViewModel) })
+            MerchantHomeScreen(
+                onNewPackage = { navController.navigate(Routes.NEW_PACKAGE) },
+                onLogout = { logout(navController, sessionViewModel) }
+            )
+        }
+        composable(Routes.NEW_PACKAGE) {
+            // The cross and a successful save both go back to "Vandaag", which then reads the list again.
+            NewPackageScreen(onDone = { navController.popBackStack() })
         }
     }
 }

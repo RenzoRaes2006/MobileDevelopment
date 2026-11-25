@@ -2,7 +2,6 @@
     <!-- Merchant tabs (Figma "FloatingNavBar · handelaar") -->
     <string name="merchant_tab_today">Vandaag</string>
     <string name="merchant_tab_my_shop">Mijn winkel</string>
-    <string name="merchant_today_placeholder">Hier komen straks je pakketten van vandaag.</string>
     <string name="merchant_logout">Uitloggen</string>
 
     <!-- Mijn winkel (Figma "10 - Mijn winkel", H1, H2) -->
