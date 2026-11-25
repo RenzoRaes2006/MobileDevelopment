@@ -83,9 +83,8 @@ fun CustomerHomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (selectedTab) {
-            CustomerTab.DISCOVER -> PlaceholderScreen(
-                title = R.string.customer_tab_discover,
-                text = R.string.customer_discover_placeholder,
+            CustomerTab.DISCOVER -> DiscoverScreen(
+                location = locationState,
                 onLogout = onLogout
             )
             CustomerTab.MAP -> {
@@ -188,7 +187,7 @@ private fun FloatingNavBar(
 
 /** White round profile button (Figma "Profiel en uitloggen"); it opens a menu with Uitloggen. */
 @Composable
-private fun ProfileMenuButton(onLogout: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ProfileMenuButton(onLogout: () -> Unit, modifier: Modifier = Modifier) {
     var menuOpen by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = modifier) {
