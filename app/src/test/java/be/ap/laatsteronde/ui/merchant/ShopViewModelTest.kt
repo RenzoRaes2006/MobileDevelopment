@@ -1,9 +1,12 @@
 package be.ap.laatsteronde.ui.merchant
 
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.data.AddressParts
 import be.ap.laatsteronde.data.AddressRepository
 import be.ap.laatsteronde.data.Coordinates
 import be.ap.laatsteronde.data.Shop
+import be.ap.laatsteronde.data.ShopCategory
+import be.ap.laatsteronde.data.ShopDetails
 import be.ap.laatsteronde.data.ShopRepository
 import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.Dispatchers
@@ -27,29 +30,35 @@ class ShopViewModelTest {
     private class FakeShopRepository(var shop: Shop? = null) : ShopRepository {
         var loadError: Exception? = null
         var saveError: Exception? = null
-        val saved = mutableListOf<Triple<String, String, Coordinates>>()
+        val saved = mutableListOf<ShopDetails>()
 
         override suspend fun myShop(): Shop? {
             loadError?.let { throw it }
             return shop
         }
 
-        override suspend fun saveMyShop(name: String, address: String, location: Coordinates) {
+        override suspend fun saveMyShop(details: ShopDetails) {
             saveError?.let { throw it }
-            saved += Triple(name, address, location)
-            shop = Shop("uid", name, address, location.latitude, location.longitude)
+            saved += details
+            shop = Shop("uid", details)
         }
     }
 
     /** Gives the address from [answers] for a position, or null when the position is not in the map. */
-    private class FakeAddressRepository(val answers: MutableMap<Coordinates, String> = mutableMapOf()) : AddressRepository {
+    private class FakeAddressRepository(val answers: MutableMap<Coordinates, AddressParts> = mutableMapOf()) : AddressRepository {
         override suspend fun municipalityAt(coordinates: Coordinates): String? = null
-        override suspend fun addressAt(coordinates: Coordinates): String? = answers[coordinates]
+        override suspend fun addressAt(coordinates: Coordinates): AddressParts? = answers[coordinates]
     }
 
     private val antwerp = Coordinates(latitude = 51.23, longitude = 4.41)
     private val willebroek = Coordinates(latitude = 51.06, longitude = 4.36)
-    private val savedShop = Shop("uid", "Bakkerij Jan", "Dorpsstraat 1, 2830 Willebroek", willebroek.latitude, willebroek.longitude)
+    private val nowhere = Coordinates(0.0, 0.0) // in the sea: Nominatim knows nothing
+    private val antwerpAddress = AddressParts("Kammenstraat", "12", "2000", "Antwerpen")
+    private val willebroekAddress = AddressParts("Dorpsstraat", "1", "2830", "Willebroek")
+    private val savedShop = Shop(
+        "uid",
+        ShopDetails("Bakkerij Jan", ShopCategory.BAKER, "Dorpsstraat", "1", "2830", "Willebroek", willebroek)
+    )
 
     private lateinit var shops: FakeShopRepository
     private lateinit var addresses: FakeAddressRepository
@@ -59,7 +68,7 @@ class ShopViewModelTest {
         // viewModelScope runs on Dispatchers.Main, which does not exist in a plain JVM test.
         Dispatchers.setMain(UnconfinedTestDispatcher())
         shops = FakeShopRepository()
-        addresses = FakeAddressRepository(mutableMapOf(antwerp to "Ellermanstraat 12, 2060 Antwerpen", willebroek to "Dorpsstraat 1, 2830 Willebroek"))
+        addresses = FakeAddressRepository(mutableMapOf(antwerp to antwerpAddress, willebroek to willebroekAddress))
     }
 
     @After
@@ -69,22 +78,43 @@ class ShopViewModelTest {
 
     private fun viewModel() = ShopViewModel(shops, addresses)
 
+    /** A viewModel with a valid form: name, category and a pin in Antwerp with its address. */
+    private fun viewModelWithValidForm(): ShopViewModel {
+        val viewModel = viewModel()
+        viewModel.onNameChange("Bakkerij Jan")
+        viewModel.onCategoryChange(ShopCategory.BAKER)
+        viewModel.onPinPlaced(antwerp)
+        return viewModel
+    }
+
     // --- loading the saved shop
 
     @Test
-    fun merchantWithoutShop_isNotLoadingAndHasNoShop() {
+    fun merchantWithoutShop_hasAnEmptyForm() {
         val state = viewModel().uiState.value
 
         assertFalse(state.isLoading)
         assertNull(state.shop)
-        assertFalse(state.isEditing)
+        assertEquals("", state.name)
+        assertNull(state.category)
+        assertNull(state.pin)
     }
 
     @Test
-    fun merchantWithShop_seesTheSavedShop() {
+    fun merchantWithShop_seesTheFormFilledWithTheSavedShop() {
         shops.shop = savedShop
 
-        assertEquals(savedShop, viewModel().uiState.value.shop)
+        val state = viewModel().uiState.value
+
+        assertEquals(savedShop, state.shop)
+        assertEquals("Bakkerij Jan", state.name)
+        assertEquals(ShopCategory.BAKER, state.category)
+        assertEquals(willebroek, state.pin)
+        assertEquals("Dorpsstraat", state.street)
+        assertEquals("1", state.houseNumber)
+        assertEquals("2830", state.postcode)
+        assertEquals("Willebroek", state.municipality)
+        assertFalse(state.addressAutoFilled)
     }
 
     @Test
@@ -109,59 +139,21 @@ class ShopViewModelTest {
         assertEquals(R.string.error_shop_load_failed, viewModel().uiState.value.errorMessage)
     }
 
-    // --- the form
-
-    @Test
-    fun startEditingWithoutShop_givesAnEmptyForm() {
-        val viewModel = viewModel()
-
-        viewModel.onStartEditing()
-
-        val state = viewModel.uiState.value
-        assertTrue(state.isEditing)
-        assertEquals("", state.name)
-        assertNull(state.pin)
-        assertEquals("", state.address)
-    }
-
-    @Test
-    fun startEditingWithShop_fillsTheFormWithTheSavedValues() {
-        shops.shop = savedShop
-        val viewModel = viewModel()
-
-        viewModel.onStartEditing()
-
-        val state = viewModel.uiState.value
-        assertEquals("Bakkerij Jan", state.name)
-        assertEquals(willebroek, state.pin)
-        assertEquals("Dorpsstraat 1, 2830 Willebroek", state.address)
-    }
-
-    @Test
-    fun cancelEditing_closesTheFormAndKeepsTheSavedShop() {
-        shops.shop = savedShop
-        val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onNameChange("Andere naam")
-
-        viewModel.onCancelEditing()
-
-        assertFalse(viewModel.uiState.value.isEditing)
-        assertEquals(savedShop, viewModel.uiState.value.shop)
-    }
-
     // --- the pin and the automatic address
 
     @Test
-    fun placingThePin_fillsInTheAddress() {
+    fun placingThePin_fillsInTheFourAddressFields() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
 
         viewModel.onPinPlaced(antwerp)
 
         val state = viewModel.uiState.value
         assertEquals(antwerp, state.pin)
-        assertEquals("Ellermanstraat 12, 2060 Antwerpen", state.address)
+        assertEquals("Kammenstraat", state.street)
+        assertEquals("12", state.houseNumber)
+        assertEquals("2000", state.postcode)
+        assertEquals("Antwerpen", state.municipality)
+        assertTrue(state.addressAutoFilled)
         assertFalse(state.isLookingUpAddress)
         assertNull(state.errorMessage)
     }
@@ -169,34 +161,45 @@ class ShopViewModelTest {
     @Test
     fun placingThePinOnAnotherPlace_replacesTheAddress() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
         viewModel.onPinPlaced(antwerp)
 
         viewModel.onPinPlaced(willebroek)
 
-        assertEquals("Dorpsstraat 1, 2830 Willebroek", viewModel.uiState.value.address)
+        assertEquals("Dorpsstraat", viewModel.uiState.value.street)
+        assertEquals("Willebroek", viewModel.uiState.value.municipality)
     }
 
     @Test
-    fun noAddressFound_leavesTheAddressEmptyAndShowsAHint() {
+    fun noAddressFound_leavesTheFieldsEmptyAndShowsAHint() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
 
-        viewModel.onPinPlaced(Coordinates(0.0, 0.0)) // in the sea: Nominatim knows nothing
+        viewModel.onPinPlaced(nowhere)
 
         val state = viewModel.uiState.value
-        assertEquals("", state.address)
+        assertEquals("", state.street)
+        assertEquals("", state.municipality)
+        assertFalse(state.addressAutoFilled)
         assertEquals(R.string.error_address_not_found, state.errorMessage)
-        assertEquals(Coordinates(0.0, 0.0), state.pin)
+        assertEquals(nowhere, state.pin)
+    }
+
+    @Test
+    fun editingTheAddress_isNoLongerAutomaticallyFilledIn() {
+        val viewModel = viewModel()
+        viewModel.onPinPlaced(antwerp)
+
+        viewModel.onStreetChange("Andere straat")
+
+        assertFalse(viewModel.uiState.value.addressAutoFilled)
+        assertEquals("Andere straat", viewModel.uiState.value.street)
+        assertEquals("Antwerpen", viewModel.uiState.value.municipality) // the other fields stay
     }
 
     // --- saving
 
     @Test
     fun saveWithEmptyName_showsNameErrorAndSavesNothing() {
-        val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onPinPlaced(antwerp)
+        val viewModel = viewModelWithValidForm()
         viewModel.onNameChange("   ")
 
         viewModel.save()
@@ -207,9 +210,7 @@ class ShopViewModelTest {
 
     @Test
     fun saveWithTooLongName_showsNameError() {
-        val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onPinPlaced(antwerp)
+        val viewModel = viewModelWithValidForm()
         viewModel.onNameChange("a".repeat(SHOP_NAME_MAX_LENGTH + 1))
 
         viewModel.save()
@@ -219,10 +220,22 @@ class ShopViewModelTest {
     }
 
     @Test
+    fun saveWithoutCategory_showsCategoryError() {
+        val viewModel = viewModel()
+        viewModel.onNameChange("Bakkerij Jan")
+        viewModel.onPinPlaced(antwerp)
+
+        viewModel.save()
+
+        assertEquals(R.string.error_shop_category_missing, viewModel.uiState.value.categoryError)
+        assertTrue(shops.saved.isEmpty())
+    }
+
+    @Test
     fun saveWithoutPin_showsPinErrorAndSavesNothing() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
         viewModel.onNameChange("Bakkerij Jan")
+        viewModel.onCategoryChange(ShopCategory.BAKER)
 
         viewModel.save()
 
@@ -231,72 +244,85 @@ class ShopViewModelTest {
     }
 
     @Test
-    fun saveWithEmptyAddress_showsAddressError() {
+    fun saveWithIncompleteAddress_showsAddressError() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onPinPlaced(Coordinates(0.0, 0.0)) // no address found
         viewModel.onNameChange("Bakkerij Jan")
+        viewModel.onCategoryChange(ShopCategory.BAKER)
+        viewModel.onPinPlaced(nowhere) // no address found
 
         viewModel.save()
 
-        assertEquals(R.string.error_shop_address_empty, viewModel.uiState.value.addressError)
+        assertEquals(R.string.error_shop_address_incomplete, viewModel.uiState.value.addressError)
         assertTrue(shops.saved.isEmpty())
     }
 
     @Test
-    fun saveWithAnAddressTypedByHand_works() {
+    fun saveWithAnAddressTypedByHand_andNoHouseNumber_works() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onPinPlaced(Coordinates(0.0, 0.0))
         viewModel.onNameChange("Bakkerij Jan")
-        viewModel.onAddressChange("  Zeedijk 1, 8300 Knokke  ")
+        viewModel.onCategoryChange(ShopCategory.SUPERMARKET)
+        viewModel.onPinPlaced(nowhere)
+        viewModel.onStreetChange("  Zeedijk ")
+        viewModel.onPostcodeChange("8300")
+        viewModel.onMunicipalityChange("Knokke")
 
         viewModel.save()
 
-        assertEquals(listOf(Triple("Bakkerij Jan", "Zeedijk 1, 8300 Knokke", Coordinates(0.0, 0.0))), shops.saved)
+        assertEquals(
+            listOf(ShopDetails("Bakkerij Jan", ShopCategory.SUPERMARKET, "Zeedijk", "", "8300", "Knokke", nowhere)),
+            shops.saved
+        )
     }
 
     @Test
-    fun saveSucceeds_closesTheFormAndShowsTheShop() {
+    fun saveSucceeds_savesTrimmedValuesAndShowsSavedMessage() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
         viewModel.onNameChange("  Bakkerij Jan ")
+        viewModel.onCategoryChange(ShopCategory.BAKER)
         viewModel.onPinPlaced(willebroek)
 
         viewModel.save()
 
         val state = viewModel.uiState.value
-        assertEquals(listOf(Triple("Bakkerij Jan", "Dorpsstraat 1, 2830 Willebroek", willebroek)), shops.saved) // name trimmed
-        assertFalse(state.isEditing)
+        assertEquals(
+            listOf(ShopDetails("Bakkerij Jan", ShopCategory.BAKER, "Dorpsstraat", "1", "2830", "Willebroek", willebroek)),
+            shops.saved
+        ) // name trimmed
         assertFalse(state.isSaving)
+        assertTrue(state.justSaved)
         assertNotNull(state.shop)
-        assertEquals("Bakkerij Jan", state.shop?.name)
+        assertEquals("Bakkerij Jan", state.shop?.details?.name)
     }
 
     @Test
-    fun saveWithoutInternet_showsNoInternetAndKeepsTheForm() {
+    fun changingSomethingAfterSaving_hidesTheSavedMessage() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.save()
+        assertTrue(viewModel.uiState.value.justSaved)
+
+        viewModel.onNameChange("Andere naam")
+
+        assertFalse(viewModel.uiState.value.justSaved)
+    }
+
+    @Test
+    fun saveWithoutInternet_showsNoInternetAndKeepsWhatWasTyped() {
         shops.saveError = FirebaseNetworkException("offline")
-        val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onNameChange("Bakkerij Jan")
-        viewModel.onPinPlaced(willebroek)
+        val viewModel = viewModelWithValidForm()
 
         viewModel.save()
 
         val state = viewModel.uiState.value
         assertEquals(R.string.error_no_internet, state.errorMessage)
-        assertTrue(state.isEditing)
         assertFalse(state.isSaving)
+        assertFalse(state.justSaved)
         assertEquals("Bakkerij Jan", state.name) // nothing the merchant typed is lost
     }
 
     @Test
     fun saveFailsForAnotherReason_showsTheSaveError() {
         shops.saveError = IllegalStateException("permission denied")
-        val viewModel = viewModel()
-        viewModel.onStartEditing()
-        viewModel.onNameChange("Bakkerij Jan")
-        viewModel.onPinPlaced(willebroek)
+        val viewModel = viewModelWithValidForm()
 
         viewModel.save()
 
@@ -306,7 +332,6 @@ class ShopViewModelTest {
     @Test
     fun typingClearsAnOldError() {
         val viewModel = viewModel()
-        viewModel.onStartEditing()
         viewModel.save()
         assertNotNull(viewModel.uiState.value.nameError)
 
