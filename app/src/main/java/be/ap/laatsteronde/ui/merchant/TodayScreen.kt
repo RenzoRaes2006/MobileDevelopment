@@ -1,6 +1,5 @@
 package be.ap.laatsteronde.ui.merchant
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -27,8 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -43,6 +39,7 @@ import be.ap.laatsteronde.R
 import be.ap.laatsteronde.data.FoodPackage
 import be.ap.laatsteronde.data.PackageDetails
 import be.ap.laatsteronde.ui.auth.FieldError
+import be.ap.laatsteronde.ui.components.DashedDivider
 import be.ap.laatsteronde.ui.customer.ProfileMenuButton
 import be.ap.laatsteronde.ui.theme.CardBorder
 import be.ap.laatsteronde.ui.theme.Kraft
@@ -237,17 +234,7 @@ private fun PackageCard(item: FoodPackage, onVisibleChange: (Boolean) -> Unit) {
             )
         }
 
-        // The dashed line of the ticket.
-        val dashColor = CardBorder
-        Canvas(modifier = Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 14.dp)) {
-            drawLine(
-                color = dashColor,
-                start = Offset(0f, 0f),
-                end = Offset(size.width, 0f),
-                strokeWidth = 2f,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))
-            )
-        }
+        DashedDivider(modifier = Modifier.padding(horizontal = 14.dp))
 
         val visibleText = stringResource(if (item.visible) R.string.package_visible else R.string.package_offline)
         Row(
