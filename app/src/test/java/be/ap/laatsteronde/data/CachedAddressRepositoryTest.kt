@@ -150,7 +150,7 @@ class CachedAddressRepositoryTest {
 
         val result = repository.addressAt(place)
 
-        assertEquals("Ellermanstraat 12, 2060 Antwerpen", result)
+        assertEquals(AddressParts("Ellermanstraat", "12", "2060", "Antwerpen"), result)
         assertEquals(18, api.lastZoom)
     }
 

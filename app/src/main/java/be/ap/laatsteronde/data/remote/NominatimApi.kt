@@ -1,5 +1,6 @@
 package be.ap.laatsteronde.data.remote
 
+import be.ap.laatsteronde.data.AddressParts
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -22,14 +23,18 @@ data class NominatimAddress(
     @SerializedName("postcode") val postcode: String? = null
 ) {
     /**
-     * The address as we show it, in the Belgian way: "Straat 12, 2000 Antwerpen". Parts that
-     * Nominatim does not know are left out, so a pin in a field gives only "2830 Willebroek".
-     * Returns null when nothing is known.
+     * The address in the four parts of the shop form: street, number, postcode and municipality.
+     * Parts that Nominatim does not know are empty, so a pin in a field gives only a postcode
+     * and a municipality. Returns null when nothing is known.
      */
-    fun streetAddress(): String? {
-        val street = listOf(road, houseNumber).filterNot { it.isNullOrBlank() }.joinToString(" ") { it!!.trim() }
-        val place = listOf(postcode, municipalityName()).filterNot { it.isNullOrBlank() }.joinToString(" ") { it!!.trim() }
-        return listOf(street, place).filter { it.isNotEmpty() }.joinToString(", ").ifEmpty { null }
+    fun addressParts(): AddressParts? {
+        val parts = AddressParts(
+            street = road.orEmpty().trim(),
+            houseNumber = houseNumber.orEmpty().trim(),
+            postcode = postcode.orEmpty().trim(),
+            municipality = municipalityName().orEmpty()
+        )
+        return parts.takeUnless { it.isEmpty() }
     }
 
     /**

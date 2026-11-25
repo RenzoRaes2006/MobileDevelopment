@@ -1,5 +1,6 @@
 package be.ap.laatsteronde.ui.customer
 
+import be.ap.laatsteronde.data.AddressParts
 import be.ap.laatsteronde.data.AddressRepository
 import be.ap.laatsteronde.data.Coordinates
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,7 @@ class DiscoverViewModelTest {
             return answer
         }
 
-        override suspend fun addressAt(coordinates: Coordinates): String? = null
+        override suspend fun addressAt(coordinates: Coordinates): AddressParts? = null
     }
 
     private val antwerp = Coordinates(latitude = 51.23, longitude = 4.41)

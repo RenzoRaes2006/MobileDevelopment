@@ -9,13 +9,23 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 
+/** The address in the four parts of the shop form. A part Nominatim does not know is empty. */
+data class AddressParts(
+    val street: String,
+    val houseNumber: String,
+    val postcode: String,
+    val municipality: String
+) {
+    fun isEmpty(): Boolean = street.isEmpty() && houseNumber.isEmpty() && postcode.isEmpty() && municipality.isEmpty()
+}
+
 /** Turns a position into the name of the municipality. An interface, so a unit test can use a fake. */
 interface AddressRepository {
     /** The municipality at this position, or null when it is not known and cannot be looked up now. */
     suspend fun municipalityAt(coordinates: Coordinates): String?
 
-    /** The full address ("Straat 12, 2000 Antwerpen") at this position, or null when it cannot be looked up now. */
-    suspend fun addressAt(coordinates: Coordinates): String?
+    /** The address at this position in four parts, or null when it cannot be looked up now. */
+    suspend fun addressAt(coordinates: Coordinates): AddressParts?
 }
 
 /**
@@ -55,10 +65,10 @@ class CachedAddressRepository(
      * Not cached: a merchant looks up one address when placing the pin of the shop, and the
      * saved shop keeps the address, so there is nothing to look up twice.
      */
-    override suspend fun addressAt(coordinates: Coordinates): String? {
+    override suspend fun addressAt(coordinates: Coordinates): AddressParts? {
         return try {
             api.reverse(coordinates.latitude, coordinates.longitude, zoom = ADDRESS_ZOOM)
-                .address?.streetAddress()
+                .address?.addressParts()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

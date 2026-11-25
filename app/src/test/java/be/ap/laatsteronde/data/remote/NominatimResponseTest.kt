@@ -1,5 +1,6 @@
 package be.ap.laatsteronde.data.remote
 
+import be.ap.laatsteronde.data.AddressParts
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -48,31 +49,38 @@ class NominatimResponseTest {
     }
 
     @Test
-    fun streetAddress_hasStreetNumberPostcodeAndMunicipality() {
+    fun addressParts_hasStreetNumberPostcodeAndMunicipality() {
         val response = parse(
             """{"address":{"house_number":"12","road":"Ellermanstraat","postcode":"2060","city":"Antwerpen","municipality":"Antwerpen","country":"België"}}"""
         )
 
-        assertEquals("Ellermanstraat 12, 2060 Antwerpen", response.address?.streetAddress())
+        assertEquals(AddressParts("Ellermanstraat", "12", "2060", "Antwerpen"), response.address?.addressParts())
     }
 
     @Test
-    fun streetAddress_withoutHouseNumber_hasOnlyTheStreet() {
+    fun addressParts_withoutHouseNumber_hasAnEmptyNumber() {
         val response = parse("""{"address":{"road":"Dorpsstraat","postcode":"2830","municipality":"Willebroek"}}""")
 
-        assertEquals("Dorpsstraat, 2830 Willebroek", response.address?.streetAddress())
+        assertEquals(AddressParts("Dorpsstraat", "", "2830", "Willebroek"), response.address?.addressParts())
     }
 
     @Test
-    fun streetAddress_withoutStreet_hasOnlyPostcodeAndMunicipality() {
+    fun addressParts_withoutStreet_hasOnlyPostcodeAndMunicipality() {
         val response = parse("""{"address":{"postcode":"2830","municipality":"Willebroek"}}""")
 
-        assertEquals("2830 Willebroek", response.address?.streetAddress())
+        assertEquals(AddressParts("", "", "2830", "Willebroek"), response.address?.addressParts())
     }
 
     @Test
-    fun streetAddress_withoutAnyPlaceInformation_givesNull() {
-        assertNull(parse("""{"address":{"country":"België"}}""").address?.streetAddress())
+    fun addressParts_trimsSpaces() {
+        val response = parse("""{"address":{"road":" Dorpsstraat ","house_number":" 1 ","postcode":" 2830 ","town":" Mechelen "}}""")
+
+        assertEquals(AddressParts("Dorpsstraat", "1", "2830", "Mechelen"), response.address?.addressParts())
+    }
+
+    @Test
+    fun addressParts_withoutAnyPlaceInformation_givesNull() {
+        assertNull(parse("""{"address":{"country":"België"}}""").address?.addressParts())
     }
 
     @Test
