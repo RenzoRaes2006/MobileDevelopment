@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.data.AddressParts
 import be.ap.laatsteronde.data.AddressRepository
 import be.ap.laatsteronde.data.CachedAddressRepository
 import be.ap.laatsteronde.data.Coordinates
@@ -21,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +35,12 @@ internal const val SHOP_NAME_MAX_LENGTH = 60
 
 /** How long we wait for Firestore to confirm a save before we say there is no connection. */
 internal const val SAVE_TIMEOUT_MILLIS = 10_000L
+
+/**
+ * How long we wait after the last typed letter of the address before we look for the pin. Nominatim
+ * asks for at most one question a second, and a merchant who is still typing does not need an answer yet.
+ */
+internal const val PIN_LOOKUP_DELAY_MILLIS = 1_000L
 
 /** Turns a Firebase exception into a message the user understands. [fallback] is used for all other problems. */
 @StringRes
@@ -47,6 +55,8 @@ internal fun shopErrorMessageFor(e: Exception, @StringRes fallback: Int): Int = 
  * the name, category, pin and address. It is filled from the saved shop ([shop]) once that is loaded.
  * [addressAutoFilled] is true as long as the address comes from the pin and was not changed by hand.
  * [justSaved] is true after a successful save, until the merchant changes something again.
+ * [isLookingUpPin] is true while the pin is being looked up for a typed address (including the short wait after
+ * the last letter); [addressPinCount] goes up each time the pin was moved to a typed address, so the map knows to look at it.
  */
 data class ShopUiState(
     val isLoading: Boolean = true,
@@ -60,6 +70,8 @@ data class ShopUiState(
     val municipality: String = "",
     val addressAutoFilled: Boolean = false,
     val isLookingUpAddress: Boolean = false,
+    val isLookingUpPin: Boolean = false,
+    val addressPinCount: Int = 0,
     val isSaving: Boolean = false,
     val justSaved: Boolean = false,
     @StringRes val nameError: Int? = null,
@@ -79,6 +91,7 @@ class ShopViewModel(
     val uiState: StateFlow<ShopUiState> = _uiState.asStateFlow()
 
     private var addressJob: Job? = null
+    private var pinJob: Job? = null
 
     init {
         load()
@@ -110,17 +123,61 @@ class ShopViewModel(
     fun onCategoryChange(category: ShopCategory) =
         _uiState.update { it.copy(category = category, categoryError = null, errorMessage = null, justSaved = false) }
 
-    fun onStreetChange(street: String) =
-        _uiState.update { it.addressEdited().copy(street = street) }
+    // A typed change of the address also moves the pin to it, after a short wait.
+    fun onStreetChange(street: String) = onAddressTyped { it.copy(street = street) }
 
-    fun onHouseNumberChange(houseNumber: String) =
-        _uiState.update { it.addressEdited().copy(houseNumber = houseNumber) }
+    fun onHouseNumberChange(houseNumber: String) = onAddressTyped { it.copy(houseNumber = houseNumber) }
 
-    fun onPostcodeChange(postcode: String) =
-        _uiState.update { it.addressEdited().copy(postcode = postcode) }
+    fun onPostcodeChange(postcode: String) = onAddressTyped { it.copy(postcode = postcode) }
 
-    fun onMunicipalityChange(municipality: String) =
-        _uiState.update { it.addressEdited().copy(municipality = municipality) }
+    fun onMunicipalityChange(municipality: String) = onAddressTyped { it.copy(municipality = municipality) }
+
+    private fun onAddressTyped(change: (ShopUiState) -> ShopUiState) {
+        _uiState.update { change(it.addressEdited()) }
+        lookUpPin()
+    }
+
+    /**
+     * Moves the pin to the typed address, as soon as the merchant stopped typing for a moment. Needs a
+     * street and a postcode or a municipality; with less there is nothing to look for. Every new letter
+     * starts the wait again, so only the last address is looked up. The address stays as it was typed:
+     * only the pin moves, and the address of the pin is not looked up again (that would change what was typed).
+     */
+    private fun lookUpPin() {
+        pinJob?.cancel()
+        val state = _uiState.value
+        val address = AddressParts(
+            street = state.street.trim(),
+            houseNumber = state.houseNumber.trim(),
+            postcode = state.postcode.trim(),
+            municipality = state.municipality.trim()
+        )
+        val complete = address.street.isNotEmpty() && (address.postcode.isNotEmpty() || address.municipality.isNotEmpty())
+        if (!complete) {
+            _uiState.update { it.copy(isLookingUpPin = false) }
+            return
+        }
+        // Also true during the wait, so "Winkel opslaan" does not save the old pin of the old address.
+        _uiState.update { it.copy(isLookingUpPin = true) }
+        pinJob = viewModelScope.launch {
+            delay(PIN_LOOKUP_DELAY_MILLIS)
+            val found = addressRepository.locationOf(address)
+            _uiState.update {
+                if (found == null) {
+                    // The pin stays where it was; the merchant can fix the address or place the pin by hand.
+                    it.copy(isLookingUpPin = false, errorMessage = R.string.error_pin_not_found)
+                } else {
+                    it.copy(
+                        pin = found,
+                        pinError = null,
+                        isLookingUpPin = false,
+                        addressPinCount = it.addressPinCount + 1,
+                        errorMessage = null
+                    )
+                }
+            }
+        }
+    }
 
     /**
      * The merchant put the pin on a place (a tap or a drag). We look up the address of that place;
@@ -128,9 +185,11 @@ class ShopViewModel(
      */
     fun onPinPlaced(position: Coordinates) {
         addressJob?.cancel()
+        pinJob?.cancel() // a pin placed by hand beats a typed address that is still being looked up
         _uiState.update {
             it.copy(
                 pin = position,
+                isLookingUpPin = false,
                 street = "",
                 houseNumber = "",
                 postcode = "",
@@ -165,7 +224,7 @@ class ShopViewModel(
 
     fun save() {
         val state = _uiState.value
-        if (state.isSaving || state.isLookingUpAddress) return
+        if (state.isSaving || state.isLookingUpAddress || state.isLookingUpPin) return
 
         val name = state.name.trim()
         val category = state.category

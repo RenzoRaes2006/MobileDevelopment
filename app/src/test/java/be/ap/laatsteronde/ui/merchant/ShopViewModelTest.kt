@@ -276,6 +276,10 @@ class ShopViewModelTest {
         viewModel.onStreetChange("  Zeedijk ")
         viewModel.onPostcodeChange("8300")
         viewModel.onMunicipalityChange("Knokke")
+        // The typed address is looked up for the pin first; the fake does not know it, so the pin stays where it was.
+        scheduler.advanceTimeBy(PIN_LOOKUP_DELAY_MILLIS + 1)
+        scheduler.runCurrent()
+
         viewModel.save()
 
         assertEquals(

@@ -20,6 +20,8 @@
     <string name="shop_address_auto">✓ Automatisch ingevuld</string>
     <!-- Not in the Figma: shown while the address of the pin is being looked up. -->
     <string name="shop_address_searching">Adres zoeken…</string>
+    <!-- Not in the Figma: shown while the pin is being looked up for a typed address. -->
+    <string name="shop_pin_searching">Pin zoeken…</string>
     <string name="shop_label_street">Straat</string>
     <string name="shop_label_number">Nr.</string>
     <string name="shop_label_postcode">Postcode</string>
@@ -35,6 +37,7 @@
     <string name="error_shop_pin_missing">Tik op de kaart om de plek van je winkel te kiezen.</string>
     <string name="error_shop_address_incomplete">Vul straat, postcode en gemeente in.</string>
     <string name="error_address_not_found">We vonden geen adres op deze plek. Vul het zelf in of kies een andere plek.</string>
+    <string name="error_pin_not_found">We vonden dit adres niet op de kaart. Controleer het adres of zet de pin zelf.</string>
     <string name="error_shop_save_failed">Je winkel opslaan is mislukt. Probeer het opnieuw.</string>
     <string name="error_shop_load_failed">Je winkel laden is mislukt. Probeer het opnieuw.</string>
 
