@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -145,8 +148,10 @@ fun CustomerMapScreen(
 }
 
 /**
- * The card of a shop on the map (Figma "Winkelkaart"): the shop, the distance, the pick-up window,
- * how many packages are left and the lowest price. Without the button "Bekijk": looking only.
+ * The card of a shop on the map (Figma "Winkelkaart"): the shop with the distance and the number of offers,
+ * and under it every offer of that shop as a row: the title, the pick-up window, how many are left and
+ * the price. A shop with several packages thus shows all of them to choose from. Looking only for now:
+ * choosing an offer (the button "Bekijk" of the Figma) comes with reserving. Many offers scroll inside the card.
  */
 @Composable
 private fun ShopCard(item: ShopOffers, modifier: Modifier = Modifier) {
@@ -183,11 +188,9 @@ private fun ShopCard(item: ShopOffers, modifier: Modifier = Modifier) {
                 )
                 Text(
                     text = stringResource(
-                        R.string.customer_map_card_info,
+                        R.string.customer_map_card_header,
                         formatDistance(item.distanceMeters),
-                        item.pickupFrom,
-                        item.pickupTo,
-                        item.remaining
+                        pluralStringResource(R.plurals.customer_map_offers, item.offers.size, item.offers.size)
                     ),
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Normal),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -195,13 +198,46 @@ private fun ShopCard(item: ShopOffers, modifier: Modifier = Modifier) {
                 )
             }
         }
-        DashedDivider(modifier = Modifier.padding(horizontal = 14.dp))
-        Text(
-            text = stringResource(R.string.customer_map_card_from, formatPriceShort(item.fromPriceCents)),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-        )
+        // The offers of this shop, each under a dashed line. With many offers this part scrolls.
+        Column(
+            modifier = Modifier
+                .heightIn(max = 232.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            item.offers.forEach { offer ->
+                DashedDivider(modifier = Modifier.padding(horizontal = 14.dp))
+                OfferRow(offer)
+            }
+        }
+    }
+}
+
+/** One offer in the card of a shop: title and pick-up window with how many are left on the left, the price on the right. */
+@Composable
+private fun OfferRow(offer: PackageOffer) {
+    val details = offer.pack.details
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(
+                text = details.title,
+                style = MaterialTheme.typography.titleSmall.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = stringResource(R.string.customer_map_offer_info, details.pickupFrom, details.pickupTo, details.quantity),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+        PriceWithDiscount(details.priceCents, details.originalPriceCents, compact = true)
     }
 }
 

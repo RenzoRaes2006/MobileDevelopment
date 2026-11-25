@@ -36,8 +36,12 @@
         <item quantity="one">%1$d winkel met pakketten</item>
         <item quantity="other">%1$d winkels met pakketten</item>
     </plurals>
-    <string name="customer_map_card_info">%1$s · ophalen %2$s – %3$s · nog %4$d</string>
-    <string name="customer_map_card_from">Vanaf %1$s</string>
+    <string name="customer_map_card_header">%1$s · %2$s</string>
+    <plurals name="customer_map_offers">
+        <item quantity="one">%1$d aanbieding</item>
+        <item quantity="other">%1$d aanbiedingen</item>
+    </plurals>
+    <string name="customer_map_offer_info">ophalen %1$s – %2$s · nog %3$d</string>
     <string name="customer_map_pin_description">%1$s, vanaf %2$s</string>
     <string name="customer_orders_placeholder">Hier komen straks je bestellingen.</string>
     <string name="customer_favorites_placeholder">Hier komen straks je favoriete winkels.</string>
