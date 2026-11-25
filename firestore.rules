@@ -33,6 +33,38 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Helper: true when the signed-in user has the role "merchant" in their profile.
+    function isMerchant() {
+      return isSignedIn()
+             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'merchant';
+    }
+
+    // Shops: one document per merchant, keyed by the uid of the merchant (shops/{uid}).
+    match /shops/{shopId} {
+      // Any signed-in user can see the shops (customers look for packages).
+      allow read: if isSignedIn();
+
+      // Only the merchant who owns the document can write it: the document id and the
+      // ownerId must be their own uid, and the fields must have the right shape.
+      allow create, update: if isMerchant()
+                            && isOwner(shopId)
+                            && request.resource.data.ownerId == request.auth.uid
+                            && request.resource.data.name is string
+                            && request.resource.data.name.size() > 0
+                            && request.resource.data.name.size() <= 60
+                            && request.resource.data.address is string
+                            && request.resource.data.address.size() > 0
+                            && request.resource.data.address.size() <= 200
+                            && request.resource.data.latitude is number
+                            && request.resource.data.latitude >= -90
+                            && request.resource.data.latitude <= 90
+                            && request.resource.data.longitude is number
+                            && request.resource.data.longitude >= -180
+                            && request.resource.data.longitude <= 180;
+
+      allow delete: if isMerchant() && isOwner(shopId);
+    }
+
     // Everything else is denied by default (no other match blocks grant access).
   }
 }
