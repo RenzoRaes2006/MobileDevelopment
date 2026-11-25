@@ -38,8 +38,8 @@ Doel: alle Must-vereisten klaar rond woensdag 16/12 (3 weken voor de presentatie
 
 ## Tegen de week erna (2/12)
 - [ ] Foto bij een pakket: verkleinen, JPEG, Base64 (H5)
-- [ ] Pakkettenlijst "Dichtbij jou" met afstand en "Laatste ronde" bovenaan (K3, scherm Ontdekken)
-- [ ] Kaart met pakketten en pakketdetail (K4/K5/K7)
+- [ ] Pakkettenlijst "Dichtbij jou" met afstand en "Laatste ronde" bovenaan (K3, scherm Ontdekken) — de lijst met afstand is al klaar, zie `week-04.md`; de rij "Laatste ronde" en de filters volgen
+- [ ] Kaart met pakketten en pakketdetail (K4/K5/K7) — de prijslabels en het winkelkaartje zijn al klaar, zie `week-04.md`; het pakketdetail volgt
 
 ## Daarna (voorlopig plan)
 - 9/12: reserveren, ophaalticket en bestellingen (K8/K9/K10), reservaties bekijken door de handelaar
