@@ -20,14 +20,19 @@ import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 /** Longest shop name; the Firestore rules check the same limit. */
 internal const val SHOP_NAME_MAX_LENGTH = 60
+
+/** How long we wait for Firestore to confirm a save before we say there is no connection. */
+internal const val SAVE_TIMEOUT_MILLIS = 10_000L
 
 /** Turns a Firebase exception into a message the user understands. [fallback] is used for all other problems. */
 @StringRes
@@ -200,11 +205,16 @@ class ShopViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
-                shopRepository.saveMyShop(details)
+                // Without internet Firestore keeps the write in a queue and waits for ever, so
+                // after a while we tell the merchant instead of showing a spinner without end.
+                withTimeout(SAVE_TIMEOUT_MILLIS) { shopRepository.saveMyShop(details) }
                 val saved = shopRepository.myShop()
                 _uiState.update { current ->
                     (if (saved != null) current.withShop(saved) else current).copy(isSaving = false, justSaved = true)
                 }
+            } catch (e: TimeoutCancellationException) {
+                // Must come before CancellationException, which this one is a kind of.
+                _uiState.update { it.copy(isSaving = false, errorMessage = R.string.error_no_internet) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

@@ -11,6 +11,8 @@ import be.ap.laatsteronde.data.ShopRepository
 import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -30,6 +32,9 @@ class ShopViewModelTest {
     private class FakeShopRepository(var shop: Shop? = null) : ShopRepository {
         var loadError: Exception? = null
         var saveError: Exception? = null
+
+        /** Like Firestore without internet: the save never finishes. */
+        var saveHangs = false
         val saved = mutableListOf<ShopDetails>()
 
         override suspend fun myShop(): Shop? {
@@ -38,6 +43,7 @@ class ShopViewModelTest {
         }
 
         override suspend fun saveMyShop(details: ShopDetails) {
+            if (saveHangs) awaitCancellation()
             saveError?.let { throw it }
             saved += details
             shop = Shop("uid", details)
@@ -62,11 +68,12 @@ class ShopViewModelTest {
 
     private lateinit var shops: FakeShopRepository
     private lateinit var addresses: FakeAddressRepository
+    private val scheduler = TestCoroutineScheduler() // lets a test move the clock forward
 
     @Before
     fun setUp() {
         // viewModelScope runs on Dispatchers.Main, which does not exist in a plain JVM test.
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(UnconfinedTestDispatcher(scheduler))
         shops = FakeShopRepository()
         addresses = FakeAddressRepository(mutableMapOf(antwerp to antwerpAddress, willebroek to willebroekAddress))
     }
@@ -317,6 +324,24 @@ class ShopViewModelTest {
         assertFalse(state.isSaving)
         assertFalse(state.justSaved)
         assertEquals("Bakkerij Jan", state.name) // nothing the merchant typed is lost
+    }
+
+    @Test
+    fun saveThatNeverFinishes_waitsAndThenShowsNoInternet() {
+        shops.saveHangs = true
+        val viewModel = viewModelWithValidForm()
+
+        viewModel.save()
+        assertTrue(viewModel.uiState.value.isSaving) // still waiting for Firestore
+
+        scheduler.advanceTimeBy(SAVE_TIMEOUT_MILLIS + 1)
+        scheduler.runCurrent()
+
+        val state = viewModel.uiState.value
+        assertEquals(R.string.error_no_internet, state.errorMessage)
+        assertFalse(state.isSaving) // the merchant can try again
+        assertFalse(state.justSaved)
+        assertEquals("Bakkerij Jan", state.name)
     }
 
     @Test
