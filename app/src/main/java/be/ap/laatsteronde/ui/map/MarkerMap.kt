@@ -28,10 +28,16 @@ import org.osmdroid.views.overlay.Marker
 
 private const val DEFAULT_ZOOM = 17.0
 
+/** A shop on the map: a price label ([label], for example "€4") at [position]. [id] says which shop was tapped. */
+data class MapPin(val id: String, val position: Coordinates, val label: String)
+
 /**
- * An OpenStreetMap map with at most one marker.
+ * An OpenStreetMap map with one marker (the position of the customer or the pin of a shop) and,
+ * if wanted, price labels for shops ([pins]).
  *
  * - [position] is where the marker stands; null means no marker.
+ * - [pins] are price labels of shops; the one with [selectedPinId] is green. A tap on a label goes to
+ *   [onPinClick], a tap on the map itself to [onMapTap] (to close a card).
  * - [centerOn] is where the map looks. It moves there when [centerOn] or [recenterKey] changes,
  *   so the map does not jump back while the person looks around.
  * - A tap on the map, or (with [draggable]) a drag of the marker, is reported to [onPositionPicked].
@@ -48,11 +54,17 @@ fun MarkerMap(
     pinStyle: Boolean = false,
     draggable: Boolean = false,
     recenterKey: Int = 0,
+    pins: List<MapPin> = emptyList(),
+    selectedPinId: String? = null,
+    onPinClick: ((String) -> Unit)? = null,
+    onMapTap: (() -> Unit)? = null,
     onPositionPicked: ((Coordinates) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentOnPicked by rememberUpdatedState(onPositionPicked)
+    val currentOnMapTap by rememberUpdatedState(onMapTap)
+    val currentOnPinClick by rememberUpdatedState(onPinClick)
 
     val mapView = remember {
         MapView(context).apply {
@@ -92,7 +104,8 @@ fun MarkerMap(
     DisposableEffect(mapView) {
         val tapOverlay = MapEventsOverlay(object : MapEventsReceiver {
             override fun singleTapConfirmedHelper(point: GeoPoint): Boolean {
-                val callback = currentOnPicked ?: return false
+                currentOnMapTap?.invoke()
+                val callback = currentOnPicked ?: return currentOnMapTap != null
                 callback(Coordinates(point.latitude, point.longitude))
                 return true
             }
@@ -134,6 +147,29 @@ fun MarkerMap(
         } else {
             marker.position = GeoPoint(position.latitude, position.longitude)
             if (marker !in mapView.overlays) mapView.overlays.add(marker)
+        }
+        mapView.invalidate()
+    }
+
+    // The price labels of the shops. They are made again when the shops or the chosen shop change;
+    // the chosen one is added last, so it is drawn on top.
+    val pinMarkers = remember(mapView) { mutableListOf<Marker>() }
+    LaunchedEffect(mapView, pins, selectedPinId) {
+        pinMarkers.forEach { mapView.overlays.remove(it) }
+        pinMarkers.clear()
+        pins.sortedBy { it.id == selectedPinId }.forEach { pin ->
+            val pinMarker = Marker(mapView).apply {
+                setInfoWindow(null)
+                this.position = GeoPoint(pin.position.latitude, pin.position.longitude) // "this": the parameter [position] has the same name
+                icon = priceMarkerDrawable(context, pin.label, selected = pin.id == selectedPinId)
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                setOnMarkerClickListener { _, _ ->
+                    currentOnPinClick?.invoke(pin.id)
+                    true
+                }
+            }
+            mapView.overlays.add(pinMarker)
+            pinMarkers += pinMarker
         }
         mapView.invalidate()
     }
