@@ -10,27 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import be.ap.laatsteronde.data.Coordinates
 import be.ap.laatsteronde.ui.AppNavigation
 import be.ap.laatsteronde.ui.theme.OSMTheme
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 import java.io.File
-
-private val AP_HOGESCHOOL = GeoPoint(51.230167, 4.416129)
 
 class MainActivity : ComponentActivity() {
 
@@ -64,45 +48,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
-
-/** The map with one pin on [location]; the map moves to the pin when the location changes. */
-@Composable
-fun MapScreen(location: Coordinates, modifier: Modifier = Modifier) {
-    val mapView = rememberMapView()
-    val pin = remember(mapView) {
-        Marker(mapView).apply { setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM) }
-    }
-
-    AndroidView(
-        factory = { mapView },
-        modifier = modifier.fillMaxSize()
-    )
-
-    LaunchedEffect(mapView, location) {
-        val point = GeoPoint(location.latitude, location.longitude)
-        pin.position = point
-        if (pin !in mapView.overlays) mapView.overlays.add(pin)
-        mapView.controller.animateTo(point)
-        mapView.invalidate()
-    }
-}
-
-/**
- * Creates one MapView that follows the lifecycle of the screen:
- * onResume/onPause together with the activity, onDetach when the screen disappears.
- */
-@Composable
-fun rememberMapView(): MapView {
-    val context = LocalContext.current
-
-    val mapView = remember {
-        MapView(context).apply {
-            setTileSource(TileSourceFactory.MAPNIK)
-            setMultiTouchControls(true)
-            controller.setZoom(17.0)
-            controller.setCenter(AP_HOGESCHOOL)
-        }
-    }
-    return mapView
 }
