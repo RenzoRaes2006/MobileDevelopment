@@ -12,6 +12,7 @@ Doel: alle Must-vereisten klaar rond woensdag 16/12 (3 weken voor de presentatie
 ## Problemen / niet gelukt
 - Eerste versie vroeg de positie maar één keer en zonder tijdslimiet: de pin bleef op de oude plek of op de AP Hogeschool staan. Gevonden bij het testen op de emulator en opgelost.
 - Registreren op de emulator Pixel_10_Pro mislukte met "Trust anchor for certification path not found" (Firebase-aanroep; het certificaat van Firebase wordt niet vertrouwd, waarschijnlijk door het netwerk of de emulator). Nominatim werkte op dezelfde emulator wel.
+- Gevonden bij het testen op de emulator en opgelost: opslaan zonder internet bleef eindeloos draaien (nu na 10 seconden "Geen internetverbinding"); na het draaien van het scherm stond de pin half buiten de kaart; de gemeente op Ontdekken aantikken deed niets als de permissie al gegeven was (nu naar de kaart om een andere plek te kiezen).
 - Bij het testen van "Mijn winkel" gaf OpenStreetMap voor de AP-campus meerdere huisnummers ("51;53;55;…"). Nu wordt het eerste nummer gebruikt.
 - De Figma was eerst niet leesbaar voor Claude: de koppeling gebruikte een ander Figma-account (rraes100@gmail.com) dan dat van het bestand (renzo.raes@student.ap.be).
 - Het tabblad Ontdekken toont nog alleen de kop; de filters en de lijsten ("Laatste ronde", "Dichtbij jou") komen met K3. Op de kaart komen de prijsmarkers, het popupkaartje en "x winkels met pakketten" met K4/K5.
@@ -23,8 +24,8 @@ Doel: alle Must-vereisten klaar rond woensdag 16/12 (3 weken voor de presentatie
 - [x] "Pakketten in de buurt van {gemeente}" via Nominatim reverse geocoding + Room-cache CachedAddress (K2) — op de emulator getest: nieuwe plek (Willebroek), uit de cache zonder internet, onbekende plek zonder internet ("Pakketten in je buurt")
 - [ ] Handelaar: winkel aanmaken met pin op de kaart en automatisch adres (H1/H2), scherm "Mijn winkel" volgens de Figma — klaar en op de emulator getest, ook het opslaan in Firestore met de gepubliceerde regels
 - [ ] Handelaar: pakket aanmaken en lijst "Vandaag (mijn pakketten)" (H3/H4), zonder foto
-- [ ] Firestore security rules uitbreiden voor winkels en pakketten (alleen de eigenaar mag schrijven) — winkels staan in `firestore.rules` en zijn gepubliceerd (schrijven door een handelaar werkt); het weigeren van andere gebruikers is nog niet getest, pakketten volgen
-- [ ] Unit tests voor de nieuwe ViewModels — klaar voor LocationViewModel, DiscoverViewModel, ShopViewModel, de adrescache en het lezen van het Nominatim-antwoord (71 tests in totaal, allemaal geslaagd); de rest volgt met pakket
+- [ ] Firestore security rules uitbreiden voor winkels en pakketten (alleen de eigenaar mag schrijven) — winkels staan in `firestore.rules` en zijn gepubliceerd; getest met een script op het live project (24 gevallen, alle goed: een klant, een andere handelaar of niet-ingelogd mag niet schrijven, foute categorie, lege of te lange velden en een foute positie worden geweigerd, de eigenaar mag wel schrijven); pakketten volgen
+- [ ] Unit tests voor de nieuwe ViewModels — klaar voor LocationViewModel, DiscoverViewModel, ShopViewModel, de adrescache en het lezen van het Nominatim-antwoord (74 tests in totaal, allemaal geslaagd); de rest volgt met pakket
 
 ## Tegen de week erna (2/12)
 - [ ] Foto bij een pakket: verkleinen, JPEG, Base64 (H5)
