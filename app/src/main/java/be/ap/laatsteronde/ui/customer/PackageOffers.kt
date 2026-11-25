@@ -78,6 +78,11 @@ fun buildOffers(packages: List<FoodPackage>, shops: List<Shop>, from: Coordinate
         .sortedWith(compareBy<PackageOffer> { it.distanceMeters }.thenBy { it.pack.details.pickupTo })
 }
 
+/** A price for a small label on the map: "€4" for whole euros and "€5,50" otherwise (as in the Figma). */
+fun formatPriceShort(cents: Int): String =
+    if (cents % 100 == 0) "€%d".format(Locale.ROOT, cents / 100)
+    else "€%d,%02d".format(Locale.ROOT, cents / 100, cents % 100)
+
 /** Groups the offers per shop, the nearest shop first. */
 fun groupByShop(offers: List<PackageOffer>): List<ShopOffers> =
     offers.groupBy { it.shop.ownerId }

@@ -61,6 +61,15 @@ class PackageOffersTest {
     }
 
     @Test
+    fun formatPriceShort_dropsTheCentsOfWholeEuros() {
+        assertEquals("€4", formatPriceShort(400))
+        assertEquals("€10", formatPriceShort(1000))
+        assertEquals("€5,50", formatPriceShort(550))
+        assertEquals("€0,05", formatPriceShort(5))
+        assertEquals("€12,01", formatPriceShort(1201))
+    }
+
+    @Test
     fun discountPercent_isTheCheaperPartInWholePercent() {
         assertEquals(67, discountPercent(priceCents = 400, originalPriceCents = 1200))
         assertEquals(17, discountPercent(priceCents = 1000, originalPriceCents = 1200))
