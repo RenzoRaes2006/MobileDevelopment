@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -189,8 +190,10 @@ private fun MyShopContent(
 private fun PinMap(state: ShopUiState, onPinPlaced: (Coordinates) -> Unit) {
     val description = stringResource(R.string.shop_map_description)
     val shape = RoundedCornerShape(14.dp)
-    // The map looks at the saved shop; it does not jump around while the merchant places the pin.
-    val center = state.shop?.details?.location ?: LocationViewModel.DEFAULT_LOCATION
+    // The map looks at the pin (or the default place when there is none yet), once the shop is loaded.
+    // It is not recalculated for every new pin, so the map does not jump around while the merchant
+    // places the pin; after a rotation the map is rebuilt and starts on the pin where it is now.
+    val center = remember(state.isLoading) { state.pin ?: LocationViewModel.DEFAULT_LOCATION }
     Box(
         modifier = Modifier
             .fillMaxWidth()
