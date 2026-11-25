@@ -13,6 +13,9 @@ import kotlin.coroutines.cancellation.CancellationException
 interface AddressRepository {
     /** The municipality at this position, or null when it is not known and cannot be looked up now. */
     suspend fun municipalityAt(coordinates: Coordinates): String?
+
+    /** The full address ("Straat 12, 2000 Antwerpen") at this position, or null when it cannot be looked up now. */
+    suspend fun addressAt(coordinates: Coordinates): String?
 }
 
 /**
@@ -48,7 +51,25 @@ class CachedAddressRepository(
         }
     }
 
+    /**
+     * Not cached: a merchant looks up one address when placing the pin of the shop, and the
+     * saved shop keeps the address, so there is nothing to look up twice.
+     */
+    override suspend fun addressAt(coordinates: Coordinates): String? {
+        return try {
+            api.reverse(coordinates.latitude, coordinates.longitude, zoom = ADDRESS_ZOOM)
+                .address?.streetAddress()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     companion object {
+        /** Nominatim zoom 18 is the level of a building, so the street and house number come back. */
+        private const val ADDRESS_ZOOM = 18
+
         /** Municipalities hardly change, so a saved answer is good for 30 days. */
         private val MAX_AGE_MILLIS = TimeUnit.DAYS.toMillis(30)
 

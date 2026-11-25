@@ -22,6 +22,8 @@ class DiscoverViewModelTest {
             asked += coordinates
             return answer
         }
+
+        override suspend fun addressAt(coordinates: Coordinates): String? = null
     }
 
     private val antwerp = Coordinates(latitude = 51.23, longitude = 4.41)

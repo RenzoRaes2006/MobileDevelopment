@@ -48,6 +48,34 @@ class NominatimResponseTest {
     }
 
     @Test
+    fun streetAddress_hasStreetNumberPostcodeAndMunicipality() {
+        val response = parse(
+            """{"address":{"house_number":"12","road":"Ellermanstraat","postcode":"2060","city":"Antwerpen","municipality":"Antwerpen","country":"België"}}"""
+        )
+
+        assertEquals("Ellermanstraat 12, 2060 Antwerpen", response.address?.streetAddress())
+    }
+
+    @Test
+    fun streetAddress_withoutHouseNumber_hasOnlyTheStreet() {
+        val response = parse("""{"address":{"road":"Dorpsstraat","postcode":"2830","municipality":"Willebroek"}}""")
+
+        assertEquals("Dorpsstraat, 2830 Willebroek", response.address?.streetAddress())
+    }
+
+    @Test
+    fun streetAddress_withoutStreet_hasOnlyPostcodeAndMunicipality() {
+        val response = parse("""{"address":{"postcode":"2830","municipality":"Willebroek"}}""")
+
+        assertEquals("2830 Willebroek", response.address?.streetAddress())
+    }
+
+    @Test
+    fun streetAddress_withoutAnyPlaceInformation_givesNull() {
+        assertNull(parse("""{"address":{"country":"België"}}""").address?.streetAddress())
+    }
+
+    @Test
     fun answerWithoutAddress_hasNoMunicipality() {
         // Nominatim answers {"error":"Unable to geocode"} for a place in the sea.
         val response = parse("""{"error":"Unable to geocode"}""")

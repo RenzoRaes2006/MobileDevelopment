@@ -27,6 +27,10 @@ class CachedAddressRepositoryTest {
     /** Answers with [municipality], or throws [error] when that is set. Counts the calls. */
     private class FakeApi(var municipality: String? = "Antwerpen", var error: Exception? = null) : NominatimApi {
         var calls = 0
+        var lastZoom = 0
+        var road: String? = null
+        var houseNumber: String? = null
+        var postcode: String? = null
         override suspend fun reverse(
             latitude: Double,
             longitude: Double,
@@ -35,8 +39,14 @@ class CachedAddressRepositoryTest {
             zoom: Int
         ): NominatimResponse {
             calls++
+            lastZoom = zoom
             error?.let { throw it }
-            return NominatimResponse(NominatimAddress(municipality = municipality, city = null, town = null, village = null))
+            return NominatimResponse(
+                NominatimAddress(
+                    municipality = municipality, city = null, town = null, village = null,
+                    road = road, houseNumber = houseNumber, postcode = postcode
+                )
+            )
         }
     }
 
@@ -130,6 +140,32 @@ class CachedAddressRepositoryTest {
 
         assertNull(repository.municipalityAt(place))
         assertEquals(emptyMap<String, CachedAddress>(), dao.rows)
+    }
+
+    @Test
+    fun addressAt_givesTheFullAddressAtBuildingLevel() = runTest {
+        api.road = "Ellermanstraat"
+        api.houseNumber = "12"
+        api.postcode = "2060"
+
+        val result = repository.addressAt(place)
+
+        assertEquals("Ellermanstraat 12, 2060 Antwerpen", result)
+        assertEquals(18, api.lastZoom)
+    }
+
+    @Test
+    fun addressAt_isNotSavedInTheMunicipalityCache() = runTest {
+        repository.addressAt(place)
+
+        assertEquals(emptyMap<String, CachedAddress>(), dao.rows)
+    }
+
+    @Test
+    fun addressAt_withoutInternet_givesNull() = runTest {
+        api.error = IOException("offline")
+
+        assertNull(repository.addressAt(place))
     }
 
     @Test

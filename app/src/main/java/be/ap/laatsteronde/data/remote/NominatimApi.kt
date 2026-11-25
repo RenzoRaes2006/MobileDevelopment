@@ -16,8 +16,22 @@ data class NominatimAddress(
     @SerializedName("municipality") val municipality: String?,
     @SerializedName("city") val city: String?,
     @SerializedName("town") val town: String?,
-    @SerializedName("village") val village: String?
+    @SerializedName("village") val village: String?,
+    @SerializedName("road") val road: String? = null,
+    @SerializedName("house_number") val houseNumber: String? = null,
+    @SerializedName("postcode") val postcode: String? = null
 ) {
+    /**
+     * The address as we show it, in the Belgian way: "Straat 12, 2000 Antwerpen". Parts that
+     * Nominatim does not know are left out, so a pin in a field gives only "2830 Willebroek".
+     * Returns null when nothing is known.
+     */
+    fun streetAddress(): String? {
+        val street = listOf(road, houseNumber).filterNot { it.isNullOrBlank() }.joinToString(" ") { it!!.trim() }
+        val place = listOf(postcode, municipalityName()).filterNot { it.isNullOrBlank() }.joinToString(" ") { it!!.trim() }
+        return listOf(street, place).filter { it.isNotEmpty() }.joinToString(", ").ifEmpty { null }
+    }
+
     /**
      * The municipality ("gemeente"). Nominatim puts it in a different field depending on the
      * place. "municipality" comes first: for Blaasveld it gives Willebroek, where "village"
