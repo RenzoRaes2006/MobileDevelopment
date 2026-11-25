@@ -83,7 +83,13 @@ class FirebaseShopRepository(
             "latitude" to details.location.latitude,
             "longitude" to details.location.longitude
         )
-        firestore.collection(SHOPS).document(uid).set(shop).await()
+        // A transaction needs the server: without internet it fails at once. A normal write would stay
+        // in Firestore's queue and save the shop later, after the merchant was told "no internet".
+        val reference = firestore.collection(SHOPS).document(uid)
+        firestore.runTransaction { transaction ->
+            transaction.set(reference, shop)
+            null
+        }.await()
     }
 
     private companion object {
