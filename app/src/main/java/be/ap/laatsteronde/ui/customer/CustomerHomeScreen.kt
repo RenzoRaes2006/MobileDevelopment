@@ -3,19 +3,13 @@ package be.ap.laatsteronde.ui.customer
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -30,25 +24,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.R
-import be.ap.laatsteronde.ui.theme.CarrotOrange
-import be.ap.laatsteronde.ui.theme.DarkNavBarBackground
-import be.ap.laatsteronde.ui.theme.NavBarBackground
-import be.ap.laatsteronde.ui.theme.NavBarInactive
+import be.ap.laatsteronde.ui.components.FloatingNavBar
+import be.ap.laatsteronde.ui.components.NavBarItem
 import be.ap.laatsteronde.ui.theme.OSMTheme
-import be.ap.laatsteronde.ui.theme.isDarkTheme
 import be.ap.laatsteronde.ui.theme.ProfileButtonBorder
 
 /** The four tabs of the customer. The order here is the order in the bar. */
@@ -125,63 +112,14 @@ fun CustomerHomeScreen(
             }
 
             FloatingNavBar(
-                selected = selectedTab,
-                onSelect = { selectedTab = it },
+                items = CustomerTab.entries.map { NavBarItem(it.label, it.icon) },
+                selectedIndex = selectedTab.ordinal,
+                onSelect = { selectedTab = CustomerTab.entries[it] },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             )
-        }
-    }
-}
-
-/** The dark pill with the four tabs. The chosen tab is an orange pill. */
-@Composable
-private fun FloatingNavBar(
-    selected: CustomerTab,
-    onSelect: (CustomerTab) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val barColor = if (isDarkTheme()) DarkNavBarBackground else NavBarBackground
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(68.dp)
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(34.dp))
-            .background(barColor, RoundedCornerShape(34.dp))
-            .padding(horizontal = 8.dp, vertical = 6.dp)
-            .selectableGroup()
-    ) {
-        CustomerTab.entries.forEach { tab ->
-            val isSelected = tab == selected
-            val contentColor = if (isSelected) NavBarBackground else NavBarInactive
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .background(
-                        color = if (isSelected) CarrotOrange else Color.Transparent,
-                        shape = RoundedCornerShape(28.dp)
-                    )
-                    .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(tab) })
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        painter = painterResource(tab.icon),
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Text(
-                        text = stringResource(tab.label),
-                        color = contentColor,
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        maxLines = 1
-                    )
-                }
-            }
         }
     }
 }
