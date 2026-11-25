@@ -22,7 +22,22 @@ Doel: de klant ziet de pakketten van de winkels (alleen bekijken), de handelaar 
 - Op de emulator duurde het soms even voor de gemeente bovenaan verscheen (Nominatim, en we wachten op de plek van de klant). De lijst en de kaart hebben daar geen last van.
 - Tijdens het testen zette ik "overschot" van het handelaaraccount uit; het staat nu op "Offline gehaald".
 
+## Feedback van de lector
+- Map niet over heel scherm -> bedekt door knoppen
+- Locaties op map groter + naam in plaats van prijs
+- Foto's bij pakket
+- Locatie nakijken met cors location en specifieke locatie
+- Kijken of het duidelijker kan met knop achter navigatie balk
+
 ## Tegen volgende week (2/12)
+Uit de feedback van de lector:
+- [ ] De kaart niet over het hele scherm laten lopen, zodat die niet door de knoppen (de navigatiebalk, de zoekbalk en de locatieknop) bedekt wordt
+- [ ] De locaties op de kaart groter maken en de naam van de winkel tonen in plaats van de prijs
+- [ ] Foto's bij pakketten (zie ook de regel hieronder, H5)
+- [ ] De locatie nakijken met "coarse" (bij benadering) en "fine" (specifieke, nauwkeurige) locatie
+- [ ] Kijken of het duidelijker kan met een knop achter de navigatiebalk
+
+Eerder gepland:
 - [ ] Foto bij een pakket: verkleinen, JPEG, Base64 (H5), en tonen in de lijst, op de kaart en bij de handelaar
 - [ ] Filters en de rij "Laatste ronde" op Ontdekken (K3, de rest)
 - [ ] Pakketdetail met beschrijving (K7)
