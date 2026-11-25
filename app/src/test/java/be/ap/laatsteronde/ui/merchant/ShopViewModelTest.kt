@@ -56,6 +56,8 @@ class ShopViewModelTest {
     private class FakeAddressRepository(val answers: MutableMap<Coordinates, AddressParts> = mutableMapOf()) : AddressRepository {
         override suspend fun municipalityAt(coordinates: Coordinates): String? = null
         override suspend fun addressAt(coordinates: Coordinates): AddressParts? = answers[coordinates]
+
+        override suspend fun locationOf(address: AddressParts): Coordinates? = null
     }
 
     private val antwerp = Coordinates(latitude = 51.23, longitude = 4.41)
@@ -274,7 +276,6 @@ class ShopViewModelTest {
         viewModel.onStreetChange("  Zeedijk ")
         viewModel.onPostcodeChange("8300")
         viewModel.onMunicipalityChange("Knokke")
-
         viewModel.save()
 
         assertEquals(

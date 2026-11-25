@@ -1,6 +1,7 @@
 package be.ap.laatsteronde.data.remote
 
 import be.ap.laatsteronde.data.AddressParts
+import be.ap.laatsteronde.data.Coordinates
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -47,7 +48,23 @@ data class NominatimAddress(
         listOf(municipality, city, town, village).firstOrNull { !it.isNullOrBlank() }?.trim()
 }
 
-/** Reverse geocoding: from a position to an address. https://nominatim.org/release-docs/latest/api/Reverse/ */
+/** One place in the answer of a search. Nominatim gives the position as text, for example "51.2301". */
+data class NominatimPlace(
+    @SerializedName("lat") val latitude: String?,
+    @SerializedName("lon") val longitude: String?
+) {
+    /** The position, or null when Nominatim gave no usable numbers. */
+    fun coordinates(): Coordinates? {
+        val lat = latitude?.toDoubleOrNull() ?: return null
+        val lon = longitude?.toDoubleOrNull() ?: return null
+        return Coordinates(lat, lon)
+    }
+}
+
+/**
+ * Reverse geocoding (from a position to an address, https://nominatim.org/release-docs/latest/api/Reverse/)
+ * and searching (from an address to a position, https://nominatim.org/release-docs/latest/api/Search/).
+ */
 interface NominatimApi {
     @GET("reverse")
     suspend fun reverse(
@@ -58,6 +75,20 @@ interface NominatimApi {
         // zoom 10 is the level of a city or municipality, so no street details come back.
         @Query("zoom") zoom: Int = 10
     ): NominatimResponse
+
+    /**
+     * Searches an address in parts. [street] is the house number and the street ("58 Ellermanstraat").
+     * Parts that are null are left out. The shops are in Belgium, so the search is limited to it.
+     */
+    @GET("search")
+    suspend fun search(
+        @Query("street") street: String,
+        @Query("postalcode") postcode: String? = null,
+        @Query("city") city: String? = null,
+        @Query("countrycodes") countryCodes: String = "be",
+        @Query("format") format: String = "jsonv2",
+        @Query("limit") limit: Int = 1
+    ): List<NominatimPlace>
 
     companion object {
         private const val BASE_URL = "https://nominatim.openstreetmap.org/"

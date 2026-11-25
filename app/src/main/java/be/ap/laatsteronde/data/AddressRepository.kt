@@ -26,6 +26,12 @@ interface AddressRepository {
 
     /** The address at this position in four parts, or null when it cannot be looked up now. */
     suspend fun addressAt(coordinates: Coordinates): AddressParts?
+
+    /**
+     * The position of an address, for the pin of the shop. Null when the address is not complete
+     * enough (a street and a postcode or a municipality are needed), is not found, or cannot be looked up now.
+     */
+    suspend fun locationOf(address: AddressParts): Coordinates?
 }
 
 /**
@@ -75,6 +81,31 @@ class CachedAddressRepository(
             null
         }
     }
+
+    /**
+     * Not cached either. When Nominatim does not know the house number, the street alone is tried:
+     * the pin then stands in the street and the merchant can move it to the door.
+     */
+    override suspend fun locationOf(address: AddressParts): Coordinates? {
+        val street = address.street.trim()
+        if (street.isEmpty() || (address.postcode.isBlank() && address.municipality.isBlank())) return null
+        return try {
+            val number = address.houseNumber.trim()
+            val withNumber = if (number.isEmpty()) street else "$number $street"
+            search(withNumber, address) ?: if (number.isNotEmpty()) search(street, address) else null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private suspend fun search(street: String, address: AddressParts): Coordinates? =
+        api.search(
+            street = street,
+            postcode = address.postcode.trim().ifEmpty { null },
+            city = address.municipality.trim().ifEmpty { null }
+        ).firstNotNullOfOrNull { it.coordinates() }
 
     companion object {
         /** Nominatim zoom 18 is the level of a building, so the street and house number come back. */
