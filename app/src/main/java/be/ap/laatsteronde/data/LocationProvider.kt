@@ -2,6 +2,7 @@ package be.ap.laatsteronde.data
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.tasks.await
@@ -26,7 +27,14 @@ class FusedLocationProvider(context: Context) : LocationProvider {
     @SuppressLint("MissingPermission")
     override suspend fun currentLocation(): Coordinates? {
         return try {
-            val location = client.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null).await()
+            // Without a time limit this search can last forever (no GPS, no network), and the
+            // screen would wait for ever. After 10 seconds we use the last known position instead.
+            val request = CurrentLocationRequest.Builder()
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setDurationMillis(SEARCH_TIMEOUT_MILLIS)
+                .setMaxUpdateAgeMillis(MAX_AGE_MILLIS)
+                .build()
+            val location = client.getCurrentLocation(request, null).await()
                 ?: client.lastLocation.await()
             location?.let { Coordinates(it.latitude, it.longitude) }
         } catch (e: SecurityException) {
@@ -34,5 +42,12 @@ class FusedLocationProvider(context: Context) : LocationProvider {
         } catch (e: Exception) {
             null
         }
+    }
+
+    private companion object {
+        const val SEARCH_TIMEOUT_MILLIS = 10_000L
+
+        /** A stored position older than one minute is not good enough: we want where the customer is now. */
+        const val MAX_AGE_MILLIS = 60_000L
     }
 }
