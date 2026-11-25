@@ -159,7 +159,7 @@ private fun MyShopContent(
 
             Button(
                 onClick = onSave,
-                enabled = !state.isSaving && !state.isLoading,
+                enabled = !state.isSaving && !state.isLoading && !state.isLookingUpPin,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
@@ -193,7 +193,8 @@ private fun PinMap(state: ShopUiState, onPinPlaced: (Coordinates) -> Unit) {
     // The map looks at the pin (or the default place when there is none yet), once the shop is loaded.
     // It is not recalculated for every new pin, so the map does not jump around while the merchant
     // places the pin; after a rotation the map is rebuilt and starts on the pin where it is now.
-    val center = remember(state.isLoading) { state.pin ?: LocationViewModel.DEFAULT_LOCATION }
+    // The exception is a pin that was moved by a typed address: then the map goes to it (also see recenterKey).
+    val center = remember(state.isLoading, state.addressPinCount) { state.pin ?: LocationViewModel.DEFAULT_LOCATION }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -210,6 +211,7 @@ private fun PinMap(state: ShopUiState, onPinPlaced: (Coordinates) -> Unit) {
         MarkerMap(
             position = state.pin,
             centerOn = center,
+            recenterKey = state.addressPinCount,
             markerIcon = R.drawable.marker_shop_pin,
             pinStyle = true,
             draggable = true,
@@ -255,6 +257,11 @@ private fun AddressCard(
             when {
                 state.isLookingUpAddress -> Text(
                     text = stringResource(R.string.shop_address_searching),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                state.isLookingUpPin -> Text(
+                    text = stringResource(R.string.shop_pin_searching),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
