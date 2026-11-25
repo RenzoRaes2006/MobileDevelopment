@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import be.ap.laatsteronde.data.Coordinates
 import be.ap.laatsteronde.data.FusedLocationProvider
 import be.ap.laatsteronde.data.LocationProvider
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,19 +49,41 @@ class LocationViewModel(private val locationProvider: LocationProvider) : ViewMo
     private val _uiState = MutableStateFlow(LocationUiState())
     val uiState: StateFlow<LocationUiState> = _uiState.asStateFlow()
 
+    private var fetchJob: Job? = null
+
     /** Called with the answer of the permission dialog (or true when the permission was already there). */
     fun onPermissionResult(granted: Boolean) {
         if (!granted) {
+            fetchJob?.cancel()
             _uiState.value = LocationUiState(status = LocationStatus.DENIED)
             return
         }
         _uiState.update { it.copy(status = LocationStatus.LOADING) }
-        viewModelScope.launch {
+        fetchLocation()
+    }
+
+    /**
+     * Looks up the position again, because the customer may have moved. Does nothing as long as
+     * the permission was not answered yet or was denied. The old position stays on the map
+     * while we look, and when the new lookup finds nothing.
+     */
+    fun refresh() {
+        val status = _uiState.value.status
+        if (status == LocationStatus.FOUND || status == LocationStatus.UNAVAILABLE) {
+            fetchLocation()
+        }
+    }
+
+    private fun fetchLocation() {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
             val found = locationProvider.currentLocation()
-            _uiState.value = if (found != null) {
-                LocationUiState(status = LocationStatus.FOUND, location = found)
-            } else {
-                LocationUiState(status = LocationStatus.UNAVAILABLE)
+            _uiState.update { current ->
+                when {
+                    found != null -> LocationUiState(status = LocationStatus.FOUND, location = found)
+                    current.status == LocationStatus.FOUND -> current
+                    else -> LocationUiState(status = LocationStatus.UNAVAILABLE)
+                }
             }
         }
     }

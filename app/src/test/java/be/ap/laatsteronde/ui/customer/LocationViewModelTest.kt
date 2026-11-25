@@ -16,7 +16,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocationViewModelTest {
 
-    private class FakeLocationProvider(private val result: Coordinates?) : LocationProvider {
+    private class FakeLocationProvider(var result: Coordinates?) : LocationProvider {
         var calls = 0
         override suspend fun currentLocation(): Coordinates? {
             calls++
@@ -64,6 +64,59 @@ class LocationViewModelTest {
         assertEquals(LocationStatus.DENIED, viewModel.uiState.value.status)
         assertEquals(LocationViewModel.DEFAULT_LOCATION, viewModel.uiState.value.location)
         assertEquals(0, provider.calls)
+    }
+
+    @Test
+    fun refresh_afterCustomerMoved_showsNewPosition() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+        viewModel.onPermissionResult(granted = true)
+        val newPosition = Coordinates(latitude = 51.06, longitude = 4.36)
+        provider.result = newPosition
+
+        viewModel.refresh()
+
+        assertEquals(LocationStatus.FOUND, viewModel.uiState.value.status)
+        assertEquals(newPosition, viewModel.uiState.value.location)
+    }
+
+    @Test
+    fun refresh_afterNoPosition_findsPositionWhenItBecomesAvailable() {
+        val provider = FakeLocationProvider(result = null)
+        val viewModel = LocationViewModel(provider)
+        viewModel.onPermissionResult(granted = true)
+        provider.result = customerPosition
+
+        viewModel.refresh()
+
+        assertEquals(LocationStatus.FOUND, viewModel.uiState.value.status)
+        assertEquals(customerPosition, viewModel.uiState.value.location)
+    }
+
+    @Test
+    fun refresh_withoutNewPosition_keepsTheOldPosition() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+        viewModel.onPermissionResult(granted = true)
+        provider.result = null
+
+        viewModel.refresh()
+
+        assertEquals(LocationStatus.FOUND, viewModel.uiState.value.status)
+        assertEquals(customerPosition, viewModel.uiState.value.location)
+    }
+
+    @Test
+    fun refresh_beforeAnswerOrWhenDenied_doesNotAskTheProvider() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+
+        viewModel.refresh() // permission not answered yet
+        viewModel.onPermissionResult(granted = false)
+        viewModel.refresh() // denied
+
+        assertEquals(0, provider.calls)
+        assertEquals(LocationStatus.DENIED, viewModel.uiState.value.status)
     }
 
     @Test
