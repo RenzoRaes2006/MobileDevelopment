@@ -14,13 +14,32 @@
     <string name="customer_change_location">Locatie wijzigen</string>
 
     <!-- Map tab (Figma "5 - Kaart", K1). The lines under the municipality are not in the Figma:
-         there it says "4 winkels met pakketten", which needs the packages of a later week. -->
+         there it says "4 winkels met pakketten"; we show that line as soon as there are shops with packages. -->
     <string name="customer_map_locate">Naar mijn locatie</string>
     <string name="customer_map_title_unknown">Jouw buurt</string>
     <string name="customer_map_sub_found">Rond jouw locatie</string>
     <string name="customer_map_sub_chosen">Je gekozen locatie</string>
     <string name="customer_map_sub_default">Standaardlocatie</string>
     <string name="customer_map_sub_searching">Locatie zoeken…</string>
+
+    <!-- Packages to look at (Figma "4 - Ontdekken" and "5 - Kaart", K3, K4). Only looking: no reserving yet. -->
+    <string name="customer_packages_title">Dichtbij jou</string>
+    <string name="customer_packages_sorted">gesorteerd op afstand</string>
+    <string name="customer_packages_empty">Er staan vandaag nog geen pakketten online in de buurt. Kom later terug.</string>
+    <string name="customer_packages_retry">Opnieuw proberen</string>
+    <string name="customer_package_shop_line">%1$s · %2$s · %3$s</string>
+    <string name="customer_package_window">Vandaag %1$s – %2$s</string>
+    <string name="customer_package_left">Nog %1$d over</string>
+    <string name="customer_package_discount">−%1$d%%</string>
+    <string name="customer_package_photo">Nog geen foto</string>
+    <string name="error_customer_packages_load_failed">Pakketten laden is mislukt. Probeer het opnieuw.</string>
+    <plurals name="customer_map_shops">
+        <item quantity="one">%1$d winkel met pakketten</item>
+        <item quantity="other">%1$d winkels met pakketten</item>
+    </plurals>
+    <string name="customer_map_card_info">%1$s · ophalen %2$s – %3$s · nog %4$d</string>
+    <string name="customer_map_card_from">Vanaf %1$s</string>
+    <string name="customer_map_pin_description">%1$s, vanaf %2$s</string>
     <string name="customer_orders_placeholder">Hier komen straks je bestellingen.</string>
     <string name="customer_favorites_placeholder">Hier komen straks je favoriete winkels.</string>
 </resources>
