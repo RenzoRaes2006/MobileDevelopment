@@ -1,13 +1,39 @@
 <resources>
-    <!-- Merchant home (placeholder until the shop screens exist) -->
-    <string name="merchant_home_placeholder">Hier komt straks jouw winkel en je pakketten.</string>
+    <!-- Merchant tabs (Figma "FloatingNavBar · handelaar") -->
+    <string name="merchant_tab_today">Vandaag</string>
+    <string name="merchant_tab_my_shop">Mijn winkel</string>
+    <string name="merchant_today_placeholder">Hier komen straks je pakketten van vandaag.</string>
     <string name="merchant_logout">Uitloggen</string>
+
+    <!-- Mijn winkel (Figma "10 - Mijn winkel", H1, H2) -->
+    <string name="shop_title">Mijn winkel</string>
+    <string name="shop_subtitle">Vul dit eerst in voor je pakketten aanbiedt.</string>
+    <string name="shop_label_name">Naam van de winkel</string>
+    <string name="shop_label_category">Categorie</string>
+    <string name="shop_category_placeholder">Kies een categorie</string>
+    <string name="shop_category_baker">Bakker</string>
+    <string name="shop_category_supermarket">Supermarkt</string>
+    <string name="shop_category_restaurant">Restaurant</string>
+    <string name="shop_label_location">Locatie</string>
+    <string name="shop_map_hint">Tik of versleep de pin</string>
+    <string name="shop_map_description">Kaart om de plek van je winkel te kiezen</string>
+    <string name="shop_label_address">Adres</string>
+    <string name="shop_address_auto">✓ Automatisch ingevuld</string>
+    <!-- Not in the Figma: shown while the address of the pin is being looked up. -->
+    <string name="shop_address_searching">Adres zoeken…</string>
+    <string name="shop_label_street">Straat</string>
+    <string name="shop_label_number">Nr.</string>
+    <string name="shop_label_postcode">Postcode</string>
+    <string name="shop_label_municipality">Gemeente</string>
+    <string name="shop_button_save">Winkel opslaan</string>
+    <!-- Not in the Figma: confirmation after saving. -->
+    <string name="shop_saved">✓ Winkel opgeslagen</string>
 
     <!-- Shop errors (H1, H2) -->
     <string name="error_shop_name_empty">Vul de naam van je winkel in.</string>
     <string name="error_shop_name_too_long">De naam mag maximaal 60 tekens hebben.</string>
-    <string name="error_shop_pin_missing">Tik op de kaart om de plek van je winkel te kiezen.</string>
     <string name="error_shop_category_missing">Kies een categorie.</string>
+    <string name="error_shop_pin_missing">Tik op de kaart om de plek van je winkel te kiezen.</string>
     <string name="error_shop_address_incomplete">Vul straat, postcode en gemeente in.</string>
     <string name="error_address_not_found">We vonden geen adres op deze plek. Vul het zelf in of kies een andere plek.</string>
     <string name="error_shop_save_failed">Je winkel opslaan is mislukt. Probeer het opnieuw.</string>
