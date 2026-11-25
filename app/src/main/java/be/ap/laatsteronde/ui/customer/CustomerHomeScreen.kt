@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,6 +75,11 @@ fun CustomerHomeScreen(
     val locationState by locationViewModel.uiState.collectAsStateWithLifecycle()
 
     LocationPermissionHandler(viewModel = locationViewModel, status = locationState.status)
+
+    // Opening the map looks up the position again, so the pin is where the customer is now.
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == CustomerTab.MAP) locationViewModel.refresh()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (selectedTab) {

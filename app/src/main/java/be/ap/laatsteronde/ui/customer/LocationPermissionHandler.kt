@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import be.ap.laatsteronde.R
 
 private val LOCATION_PERMISSIONS = arrayOf(
@@ -42,6 +43,12 @@ fun LocationPermissionHandler(viewModel: LocationViewModel, status: LocationStat
 
     val alreadyGranted = LOCATION_PERMISSIONS.any {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // The customer may have moved while the app was in the background.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.refresh()
+        onPauseOrDispose { }
     }
 
     LaunchedEffect(status, alreadyGranted) {
