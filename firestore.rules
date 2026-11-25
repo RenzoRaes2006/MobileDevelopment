@@ -39,6 +39,12 @@ service cloud.firestore {
              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'merchant';
     }
 
+    // Helper: true when the signed-in user has the role "customer" in their profile.
+    function isCustomer() {
+      return isSignedIn()
+             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'customer';
+    }
+
     // Shops: one document per merchant, keyed by the uid of the merchant (shops/{uid}).
     match /shops/{shopId} {
       // Any signed-in user can see the shops (customers look for packages).
@@ -106,8 +112,10 @@ service cloud.firestore {
     // Packages: one document per package, with the uid of the merchant as ownerId (and shopId,
     // because the shop of a merchant is stored under their uid).
     match /packages/{packageId} {
-      // Any signed-in user can see the packages (customers look for packages).
-      allow read: if isSignedIn();
+      // A customer can see all packages (they look for packages). A merchant can only see their own:
+      // the packages of other shops are no business of theirs.
+      allow read: if isCustomer()
+                  || (isMerchant() && resource.data.ownerId == request.auth.uid);
 
       // Only a merchant can create a package, for their own shop, with a server time as createdAt.
       allow create: if isMerchant()
