@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     // Reads app/google-services.json so the Firebase SDKs know our project.
     alias(libs.plugins.google.services)
+    // Generates the code of Room (the local database) while building.
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -65,6 +67,10 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     // The device location (FusedLocationProviderClient).
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    // Room: the local database (cache of addresses, later the favorites).
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     // Navigation between screens (Navigation Compose).
     implementation("androidx.navigation:navigation-compose:2.9.5")
     // viewModel() inside composables.
