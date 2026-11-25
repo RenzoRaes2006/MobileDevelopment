@@ -15,6 +15,11 @@ val FieldBorder = Color(0xFF8C9188)
 val BackgroundCream = Color(0xFFF7F6F0)
 val SurfaceWhite = Color(0xFFFFFFFF)
 val ErrorRed = Color(0xFFB3261E)
+val TextBody = Color(0xFF3C4439) // body text and labels in the Figma, a little softer than TextDark
+val NeutralCard = Color(0xFFF1F1EA) // grey-green card behind illustrations
+val CardBorder = Color(0xFFE4E2D8) // thin border of white cards (same value as ProfileButtonBorder)
+val MapBackground = Color(0xFFEEF0EC)
+val DeepGreen = Color(0xFF164A2E) // "Automatisch ingevuld" in the address card
 
 // Floating navigation bar of the customer (Figma "FloatingNavBar").
 val NavBarBackground = Color(0xFF1B1F1A)
