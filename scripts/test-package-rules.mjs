@@ -46,6 +46,19 @@ async function read(token, id) {
   return (await fetch(`${FIRESTORE}/packages/${id}`, { headers })).status;
 }
 
+/** Asks for a list of packages like the app does. [where] is a Firestore filter, or null for "everything". */
+async function listPackages(token, where) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const structuredQuery = { from: [{ collectionId: 'packages' }], limit: 5 };
+  if (where) structuredQuery.where = where;
+  const response = await fetch(`${FIRESTORE}:runQuery`, { method: 'POST', headers, body: JSON.stringify({ structuredQuery }) });
+  return response.status;
+}
+
+const equalTo = (field, value) => ({ fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value } });
+const bothTrue = (...filters) => ({ compositeFilter: { op: 'AND', filters } });
+
 const str = (value) => ({ stringValue: value });
 const int = (value) => ({ integerValue: String(value) });
 
@@ -129,6 +142,14 @@ try {
   console.log('--- read');
   check('customer can read a package', await read(customer.token, mainId), true);
   check('nobody signed in cannot read a package', await read(null, mainId), false);
+  check('merchant can read their own package', await read(merchant.token, mainId), true);
+  // Lists, as the app asks for them: a merchant only for their own packages, a customer for all visible packages of a day.
+  check('merchant can list their own packages', await listPackages(merchant.token, equalTo('ownerId', str(merchant.uid))), true);
+  check('merchant cannot list all packages', await listPackages(merchant.token, null), false);
+  check('merchant cannot list the packages of somebody else', await listPackages(merchant.token, equalTo('ownerId', str(STRANGER_UID))), false);
+  check('customer can list all visible packages of a day',
+    await listPackages(customer.token, bothTrue(equalTo('pickupDate', str('2026-11-25')), equalTo('visible', { booleanValue: true }))), true);
+  check('nobody signed in cannot list packages', await listPackages(null, null), false);
 
   console.log('--- update');
   check('owner can switch visible off', await commit(merchant.token, [patchWrite(mainId, { visible: { booleanValue: false } })]), true);
