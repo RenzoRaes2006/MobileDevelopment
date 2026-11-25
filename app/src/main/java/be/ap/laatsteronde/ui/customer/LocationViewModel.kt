@@ -31,7 +31,10 @@ enum class LocationStatus {
     DENIED,
 
     /** Permission granted, but the position could not be found; the map shows the default location. */
-    UNAVAILABLE
+    UNAVAILABLE,
+
+    /** The customer chose a place on the map ("Zelf een locatie kiezen") instead of sharing the position. */
+    CHOSEN
 }
 
 /**
@@ -60,6 +63,18 @@ class LocationViewModel(private val locationProvider: LocationProvider) : ViewMo
         }
         _uiState.update { it.copy(status = LocationStatus.LOADING) }
         fetchLocation()
+    }
+
+    /** The customer tapped a place on the map: that place is used instead of the real position. */
+    fun onLocationChosen(position: Coordinates) {
+        fetchJob?.cancel()
+        _uiState.value = LocationUiState(status = LocationStatus.CHOSEN, location = position)
+    }
+
+    /** "Naar mijn locatie" after a "no" or a chosen place: start again, so the explanation and the question come back. */
+    fun onAskAgain() {
+        fetchJob?.cancel()
+        _uiState.value = LocationUiState()
     }
 
     /**

@@ -120,6 +120,42 @@ class LocationViewModelTest {
     }
 
     @Test
+    fun customerChoosesAPlace_thatPlaceIsUsed() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+        viewModel.onPermissionResult(granted = false)
+        val chosen = Coordinates(latitude = 51.0, longitude = 4.0)
+
+        viewModel.onLocationChosen(chosen)
+
+        assertEquals(LocationStatus.CHOSEN, viewModel.uiState.value.status)
+        assertEquals(chosen, viewModel.uiState.value.location)
+    }
+
+    @Test
+    fun refresh_doesNotReplaceAChosenPlace() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+        val chosen = Coordinates(latitude = 51.0, longitude = 4.0)
+        viewModel.onLocationChosen(chosen)
+
+        viewModel.refresh()
+
+        assertEquals(chosen, viewModel.uiState.value.location)
+        assertEquals(0, provider.calls)
+    }
+
+    @Test
+    fun askAgain_startsOverSoTheExplanationComesBack() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+        viewModel.onLocationChosen(Coordinates(latitude = 51.0, longitude = 4.0))
+
+        viewModel.onAskAgain()
+
+        assertEquals(LocationStatus.UNKNOWN, viewModel.uiState.value.status)
+        assertEquals(LocationViewModel.DEFAULT_LOCATION, viewModel.uiState.value.location)
+    }
+
+    @Test
     fun permissionGrantedButNoPosition_fallsBackToDefaultLocation() {
         val viewModel = LocationViewModel(FakeLocationProvider(result = null))
 
