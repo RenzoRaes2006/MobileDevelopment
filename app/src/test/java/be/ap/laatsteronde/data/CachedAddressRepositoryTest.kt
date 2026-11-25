@@ -4,6 +4,7 @@ import be.ap.laatsteronde.data.local.AddressDao
 import be.ap.laatsteronde.data.local.CachedAddress
 import be.ap.laatsteronde.data.remote.NominatimAddress
 import be.ap.laatsteronde.data.remote.NominatimApi
+import be.ap.laatsteronde.data.remote.NominatimPlace
 import be.ap.laatsteronde.data.remote.NominatimResponse
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -47,6 +48,25 @@ class CachedAddressRepositoryTest {
                     road = road, houseNumber = houseNumber, postcode = postcode
                 )
             )
+        }
+
+        /** What a search asked: the street (with number), the postcode and the city. */
+        val searches = mutableListOf<Triple<String, String?, String?>>()
+
+        /** Answers per street text ("58 Ellermanstraat"); a street that is not in it gives no place. */
+        val places = mutableMapOf<String, List<NominatimPlace>>()
+
+        override suspend fun search(
+            street: String,
+            postcode: String?,
+            city: String?,
+            countryCodes: String,
+            format: String,
+            limit: Int
+        ): List<NominatimPlace> {
+            searches += Triple(street, postcode, city)
+            error?.let { throw it }
+            return places[street].orEmpty()
         }
     }
 
@@ -171,5 +191,95 @@ class CachedAddressRepositoryTest {
     @Test
     fun locationKey_roundsToThreeDecimals() {
         assertEquals("51.230,4.416", CachedAddressRepository.locationKey(place))
+    }
+
+    // --- from an address to a position (the pin of the shop)
+
+    private val ellermanstraat = AddressParts(street = "Ellermanstraat", houseNumber = "58", postcode = "2060", municipality = "Antwerpen")
+
+    @Test
+    fun locationOf_searchesTheHouseNumberAndTheStreetWithPostcodeAndCity() = runTest {
+        api.places["58 Ellermanstraat"] = listOf(NominatimPlace("51.2301", "4.4161"))
+
+        val result = repository.locationOf(ellermanstraat)
+
+        assertEquals(Coordinates(51.2301, 4.4161), result)
+        assertEquals(listOf(Triple("58 Ellermanstraat", "2060", "Antwerpen")), api.searches)
+    }
+
+    @Test
+    fun locationOf_withoutAHouseNumber_searchesTheStreetOnly() = runTest {
+        api.places["Ellermanstraat"] = listOf(NominatimPlace("51.23", "4.41"))
+
+        val result = repository.locationOf(ellermanstraat.copy(houseNumber = ""))
+
+        assertEquals(Coordinates(51.23, 4.41), result)
+        assertEquals(listOf("Ellermanstraat"), api.searches.map { it.first })
+    }
+
+    @Test
+    fun locationOf_whenTheHouseNumberIsUnknown_triesTheStreetAlone() = runTest {
+        api.places["Ellermanstraat"] = listOf(NominatimPlace("51.23", "4.41")) // "58 Ellermanstraat" is not in the map
+
+        val result = repository.locationOf(ellermanstraat)
+
+        assertEquals(Coordinates(51.23, 4.41), result)
+        assertEquals(listOf("58 Ellermanstraat", "Ellermanstraat"), api.searches.map { it.first })
+    }
+
+    @Test
+    fun locationOf_unknownAddress_givesNull() = runTest {
+        assertNull(repository.locationOf(ellermanstraat))
+    }
+
+    @Test
+    fun locationOf_leavesOutAPostcodeOrCityThatIsEmpty() = runTest {
+        api.places["Ellermanstraat"] = listOf(NominatimPlace("51.23", "4.41"))
+
+        repository.locationOf(ellermanstraat.copy(houseNumber = "", postcode = "", municipality = "Antwerpen"))
+        repository.locationOf(ellermanstraat.copy(houseNumber = "", postcode = "2060", municipality = " "))
+
+        assertEquals(listOf(Triple("Ellermanstraat", null, "Antwerpen"), Triple("Ellermanstraat", "2060", null)), api.searches)
+    }
+
+    @Test
+    fun locationOf_withoutAStreet_doesNotAskNominatim() = runTest {
+        assertNull(repository.locationOf(ellermanstraat.copy(street = "  ")))
+
+        assertEquals(0, api.searches.size)
+    }
+
+    @Test
+    fun locationOf_withoutPostcodeAndCity_doesNotAskNominatim() = runTest {
+        assertNull(repository.locationOf(ellermanstraat.copy(postcode = "", municipality = "")))
+
+        assertEquals(0, api.searches.size)
+    }
+
+    @Test
+    fun locationOf_aPlaceWithoutUsableNumbers_givesNull() = runTest {
+        api.places["58 Ellermanstraat"] = listOf(NominatimPlace(null, "4.41"), NominatimPlace("abc", "4.41"))
+
+        assertNull(repository.locationOf(ellermanstraat))
+    }
+
+    @Test
+    fun locationOf_takesTheFirstPlaceWithUsableNumbers() = runTest {
+        api.places["58 Ellermanstraat"] = listOf(NominatimPlace("abc", "4.41"), NominatimPlace("51.2", "4.4"))
+
+        assertEquals(Coordinates(51.2, 4.4), repository.locationOf(ellermanstraat))
+    }
+
+    @Test
+    fun locationOf_withoutInternet_givesNull() = runTest {
+        api.error = IOException("offline")
+
+        assertNull(repository.locationOf(ellermanstraat))
+    }
+
+    @Test
+    fun nominatimPlace_readsThePositionFromText() {
+        assertEquals(Coordinates(51.2301, 4.4161), NominatimPlace("51.2301", "4.4161").coordinates())
+        assertNull(NominatimPlace(null, null).coordinates())
     }
 }
