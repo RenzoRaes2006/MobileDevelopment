@@ -87,11 +87,24 @@ class FirebasePackageRepository(
             "visible" to true,
             "createdAt" to FieldValue.serverTimestamp()
         )
-        firestore.collection(PACKAGES).add(data).await()
+        // A transaction needs the server: without internet it fails at once. A normal write would stay in
+        // Firestore's queue and be saved later, after the merchant was told "no internet" and tried again,
+        // which gives the same package twice.
+        val reference = firestore.collection(PACKAGES).document()
+        firestore.runTransaction { transaction ->
+            transaction.set(reference, data)
+            null
+        }.await()
     }
 
     override suspend fun setVisible(packageId: String, visible: Boolean) {
-        firestore.collection(PACKAGES).document(packageId).update("visible", visible).await()
+        // A transaction, so that without internet it fails at once and does not wait in the queue
+        // to switch the package later, after the switch already went back.
+        val reference = firestore.collection(PACKAGES).document(packageId)
+        firestore.runTransaction { transaction ->
+            transaction.update(reference, "visible", visible)
+            null
+        }.await()
     }
 
     /** A document that is not complete counts as "no package" instead of crashing the list. */
