@@ -2,4 +2,13 @@
     <!-- Merchant home (placeholder until the shop screens exist) -->
     <string name="merchant_home_placeholder">Hier komt straks jouw winkel en je pakketten.</string>
     <string name="merchant_logout">Uitloggen</string>
+
+    <!-- Shop errors (H1, H2) -->
+    <string name="error_shop_name_empty">Vul de naam van je winkel in.</string>
+    <string name="error_shop_name_too_long">De naam mag maximaal 60 tekens hebben.</string>
+    <string name="error_shop_pin_missing">Tik op de kaart om de plek van je winkel te kiezen.</string>
+    <string name="error_shop_address_empty">Vul het adres van je winkel in.</string>
+    <string name="error_address_not_found">We vonden geen adres op deze plek. Vul het zelf in of kies een andere plek.</string>
+    <string name="error_shop_save_failed">Je winkel opslaan is mislukt. Probeer het opnieuw.</string>
+    <string name="error_shop_load_failed">Je winkel laden is mislukt. Probeer het opnieuw.</string>
 </resources>
