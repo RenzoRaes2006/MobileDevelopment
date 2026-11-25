@@ -7,9 +7,20 @@
     <string name="customer_logout">Uitloggen</string>
     <string name="customer_profile_menu">Profiel en uitloggen</string>
     <string name="customer_discover_placeholder">Hier komen straks de pakketten in je buurt.</string>
-    <!-- Title of the Discover screen (K2): with the municipality when we know it, otherwise without. -->
-    <string name="customer_discover_title_near">Pakketten in de buurt van %1$s</string>
-    <string name="customer_discover_title">Pakketten in je buurt</string>
+    <!-- Header of the Discover screen (Figma "4 - Ontdekken", K2): label, municipality, and the same without a name. -->
+    <string name="customer_discover_label">Pakketten in de buurt van</string>
+    <string name="customer_discover_label_unknown">Pakketten in</string>
+    <string name="customer_discover_unknown_name">je buurt</string>
+    <string name="customer_change_location">Locatie wijzigen</string>
+
+    <!-- Map tab (Figma "5 - Kaart", K1). The lines under the municipality are not in the Figma:
+         there it says "4 winkels met pakketten", which needs the packages of a later week. -->
+    <string name="customer_map_locate">Naar mijn locatie</string>
+    <string name="customer_map_title_unknown">Jouw buurt</string>
+    <string name="customer_map_sub_found">Rond jouw locatie</string>
+    <string name="customer_map_sub_chosen">Je gekozen locatie</string>
+    <string name="customer_map_sub_default">Standaardlocatie</string>
+    <string name="customer_map_sub_searching">Locatie zoeken…</string>
     <string name="customer_orders_placeholder">Hier komen straks je bestellingen.</string>
     <string name="customer_favorites_placeholder">Hier komen straks je favoriete winkels.</string>
 </resources>

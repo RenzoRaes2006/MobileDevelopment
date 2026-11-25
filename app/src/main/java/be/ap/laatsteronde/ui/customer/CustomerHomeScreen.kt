@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import be.ap.laatsteronde.MapScreen
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.ui.theme.CarrotOrange
 import be.ap.laatsteronde.ui.theme.DarkNavBarBackground
@@ -69,68 +68,70 @@ fun CustomerHomeScreen(
     onLogout: () -> Unit,
     locationViewModel: LocationViewModel = viewModel(
         factory = LocationViewModel.factory(LocalContext.current)
+    ),
+    discoverViewModel: DiscoverViewModel = viewModel(
+        factory = DiscoverViewModel.factory(LocalContext.current)
     )
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(CustomerTab.DISCOVER) }
     val locationState by locationViewModel.uiState.collectAsStateWithLifecycle()
+    val municipality by discoverViewModel.municipality.collectAsStateWithLifecycle()
 
-    LocationPermissionHandler(viewModel = locationViewModel, status = locationState.status)
+    // The municipality is shared by the Discover tab and the map tab, so it is looked up here.
+    // Wait until we know where the customer is (or know that we will not get a position).
+    LaunchedEffect(locationState.status, locationState.location) {
+        if (locationState.status != LocationStatus.UNKNOWN && locationState.status != LocationStatus.LOADING) {
+            discoverViewModel.onLocationChanged(locationState.location)
+        }
+    }
 
-    // Opening the map looks up the position again, so the pin is where the customer is now.
+    // Opening the map looks up the position again, so the dot is where the customer is now.
     LaunchedEffect(selectedTab) {
         if (selectedTab == CustomerTab.MAP) locationViewModel.refresh()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        when (selectedTab) {
-            CustomerTab.DISCOVER -> DiscoverScreen(
-                location = locationState,
-                onLogout = onLogout
-            )
-            CustomerTab.MAP -> {
-                MapScreen(location = locationState.location)
-                ProfileMenuButton(
-                    onLogout = onLogout,
-                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+    // First the explanation of the location (Figma "3 - Locatie-uitleg"), then the tabs.
+    LocationGate(viewModel = locationViewModel, status = locationState.status) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (selectedTab) {
+                CustomerTab.DISCOVER -> DiscoverScreen(
+                    municipality = municipality,
+                    onChangeLocation = locationViewModel::onAskAgain,
+                    onLogout = onLogout
                 )
-                if (locationState.status == LocationStatus.DENIED ||
-                    locationState.status == LocationStatus.UNAVAILABLE
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        shadowElevation = 4.dp,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 16.dp, top = 16.dp, end = 80.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.location_denied_notice),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(12.dp)
-                        )
+                CustomerTab.MAP -> CustomerMapScreen(
+                    location = locationState,
+                    municipality = municipality,
+                    onLocationChosen = locationViewModel::onLocationChosen,
+                    onLocateClick = {
+                        when (locationState.status) {
+                            LocationStatus.FOUND, LocationStatus.UNAVAILABLE -> locationViewModel.refresh()
+                            // No position shared yet: ask again, starting with the explanation.
+                            LocationStatus.DENIED, LocationStatus.CHOSEN -> locationViewModel.onAskAgain()
+                            LocationStatus.UNKNOWN, LocationStatus.LOADING -> Unit
+                        }
                     }
-                }
+                )
+                CustomerTab.ORDERS -> PlaceholderScreen(
+                    title = R.string.customer_tab_orders,
+                    text = R.string.customer_orders_placeholder,
+                    onLogout = onLogout
+                )
+                CustomerTab.FAVORITES -> PlaceholderScreen(
+                    title = R.string.customer_tab_favorites,
+                    text = R.string.customer_favorites_placeholder,
+                    onLogout = onLogout
+                )
             }
-            CustomerTab.ORDERS -> PlaceholderScreen(
-                title = R.string.customer_tab_orders,
-                text = R.string.customer_orders_placeholder,
-                onLogout = onLogout
-            )
-            CustomerTab.FAVORITES -> PlaceholderScreen(
-                title = R.string.customer_tab_favorites,
-                text = R.string.customer_favorites_placeholder,
-                onLogout = onLogout
+
+            FloatingNavBar(
+                selected = selectedTab,
+                onSelect = { selectedTab = it },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             )
         }
-
-        FloatingNavBar(
-            selected = selectedTab,
-            onSelect = { selectedTab = it },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-        )
     }
 }
 
@@ -196,7 +197,7 @@ internal fun ProfileMenuButton(onLogout: () -> Unit, modifier: Modifier = Modifi
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(1.dp, ProfileButtonBorder),
             modifier = Modifier
-                .size(48.dp)
+                .size(44.dp) // Figma "Profiel en uitloggen"
                 .selectable(selected = false, role = Role.Button, onClick = { menuOpen = true })
         ) {
             Box(contentAlignment = Alignment.Center) {
