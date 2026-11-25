@@ -38,4 +38,44 @@
     <string name="error_address_not_found">We vonden geen adres op deze plek. Vul het zelf in of kies een andere plek.</string>
     <string name="error_shop_save_failed">Je winkel opslaan is mislukt. Probeer het opnieuw.</string>
     <string name="error_shop_load_failed">Je winkel laden is mislukt. Probeer het opnieuw.</string>
+
+    <!-- Nieuw pakket (Figma "Pakket aanmaken", H3). The photo (Camera, Galerij) comes with H5. -->
+    <string name="package_new_title">Nieuw pakket</string>
+    <string name="package_close">Sluiten</string>
+    <string name="package_label_title">Titel</string>
+    <string name="package_label_description">Beschrijving</string>
+    <string name="package_label_price">Prijs (€)</string>
+    <string name="package_label_original">Originele waarde (€)</string>
+    <string name="package_label_quantity">Aantal pakketten</string>
+    <string name="package_label_window">Ophaalvenster (vandaag)</string>
+    <string name="package_label_from">Van</string>
+    <string name="package_label_to">Tot</string>
+    <string name="package_button_publish">Pakket online zetten</string>
+
+    <!-- Package errors (H3) -->
+    <string name="error_package_title_empty">Vul een titel in.</string>
+    <string name="error_package_title_too_long">De titel mag maximaal 60 tekens hebben.</string>
+    <string name="error_package_description_too_long">De beschrijving mag maximaal 500 tekens hebben.</string>
+    <string name="error_package_price_invalid">Vul een prijs in, bijvoorbeeld 4,00.</string>
+    <string name="error_package_original_invalid">Vul de originele waarde in, bijvoorbeeld 12,00.</string>
+    <string name="error_package_price_not_lower">De prijs moet lager zijn dan de originele waarde.</string>
+    <string name="error_package_quantity_invalid">Vul een aantal in van 1 tot 999.</string>
+    <string name="error_package_time_invalid">Vul de tijd in als uur:minuten, bijvoorbeeld 18:00.</string>
+    <string name="error_package_window_order">Het einde moet na het begin liggen.</string>
+    <string name="error_package_save_failed">Je pakket opslaan is mislukt. Probeer het opnieuw.</string>
+
+    <!-- Vandaag (Figma "Vandaag", H4) -->
+    <string name="today_title">Vandaag</string>
+    <string name="today_shop_line">%1$s · sluit om %2$s</string>
+    <string name="today_my_packages">Mijn pakketten</string>
+    <string name="today_new">+ Nieuw</string>
+    <string name="today_empty">Je hebt voor vandaag nog geen pakketten. Tik op Nieuw om er een online te zetten.</string>
+    <string name="package_window_and_price">%1$s – %2$s · %3$s</string>
+    <string name="package_quantity">%1$d/%2$d</string>
+    <string name="package_visible">Zichtbaar voor klanten</string>
+    <string name="package_offline">Offline gehaald</string>
+    <string name="package_photo_placeholder">Nog geen foto</string>
+    <string name="error_package_load_failed">Je pakketten laden is mislukt. Probeer het opnieuw.</string>
+    <string name="error_package_visibility_failed">De zichtbaarheid wijzigen is mislukt. Probeer het opnieuw.</string>
+    <string name="today_retry">Opnieuw proberen</string>
 </resources>
