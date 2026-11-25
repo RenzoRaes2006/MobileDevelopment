@@ -42,6 +42,8 @@ class ShopViewModelTest {
             return shop
         }
 
+        override suspend fun allShops(): List<Shop> = listOfNotNull(shop)
+
         override suspend fun saveMyShop(details: ShopDetails) {
             if (saveHangs) awaitCancellation()
             saveError?.let { throw it }

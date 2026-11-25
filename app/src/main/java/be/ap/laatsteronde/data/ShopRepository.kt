@@ -1,6 +1,7 @@
 package be.ap.laatsteronde.data
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -33,6 +34,9 @@ interface ShopRepository {
     /** The shop of the signed-in merchant, or null when they did not create one yet. */
     suspend fun myShop(): Shop?
 
+    /** All shops, for the customers: where the packages come from. Incomplete documents are left out. */
+    suspend fun allShops(): List<Shop>
+
     /** Creates the shop of the signed-in merchant, or replaces it. Throws the Firebase exception when it fails. */
     suspend fun saveMyShop(details: ShopDetails)
 }
@@ -50,21 +54,28 @@ class FirebaseShopRepository(
         val uid = signedInUid()
         val document = firestore.collection(SHOPS).document(uid).get().await()
         if (!document.exists()) return null
-        // A document that is not complete (for example from an older version) counts as "no shop".
-        val category = ShopCategory.entries.firstOrNull { it.firestoreValue == document.getString("category") }
+        return document.toShop(ownerId = uid)
+    }
+
+    override suspend fun allShops(): List<Shop> =
+        firestore.collection(SHOPS).get().await().documents.mapNotNull { it.toShop(ownerId = it.id) }
+
+    /** A document that is not complete (for example from an older version) counts as "no shop". */
+    private fun DocumentSnapshot.toShop(ownerId: String): Shop? {
+        val category = ShopCategory.entries.firstOrNull { it.firestoreValue == getString("category") }
             ?: return null
         return Shop(
-            ownerId = uid,
+            ownerId = ownerId,
             details = ShopDetails(
-                name = document.getString("name") ?: return null,
+                name = getString("name") ?: return null,
                 category = category,
-                street = document.getString("street") ?: return null,
-                houseNumber = document.getString("houseNumber").orEmpty(),
-                postcode = document.getString("postcode") ?: return null,
-                municipality = document.getString("municipality") ?: return null,
+                street = getString("street") ?: return null,
+                houseNumber = getString("houseNumber").orEmpty(),
+                postcode = getString("postcode") ?: return null,
+                municipality = getString("municipality") ?: return null,
                 location = Coordinates(
-                    latitude = document.getDouble("latitude") ?: return null,
-                    longitude = document.getDouble("longitude") ?: return null
+                    latitude = getDouble("latitude") ?: return null,
+                    longitude = getDouble("longitude") ?: return null
                 )
             )
         )
