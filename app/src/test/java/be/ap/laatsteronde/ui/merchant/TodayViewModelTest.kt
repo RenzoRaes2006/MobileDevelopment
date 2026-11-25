@@ -39,6 +39,8 @@ class TodayViewModelTest {
             return packages
         }
 
+        override suspend fun visiblePackagesOn(date: String): List<FoodPackage> = packages.filter { it.visible }
+
         override suspend fun createPackage(details: PackageDetails) = Unit
 
         override suspend fun setVisible(packageId: String, visible: Boolean) {

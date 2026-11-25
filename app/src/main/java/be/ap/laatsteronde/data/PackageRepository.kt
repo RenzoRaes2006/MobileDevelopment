@@ -41,6 +41,12 @@ interface PackageRepository {
     /** The packages of the signed-in merchant with a pick-up window on [date] ("yyyy-MM-dd"), oldest first. */
     suspend fun myPackagesOn(date: String): List<FoodPackage>
 
+    /**
+     * The packages of all shops with a pick-up window on [date] ("yyyy-MM-dd") that the merchant
+     * has switched visible: what a customer may see. Offline packages are not in it.
+     */
+    suspend fun visiblePackagesOn(date: String): List<FoodPackage>
+
     /** Creates a package of the signed-in merchant, visible for customers. Throws the Firebase exception when it fails. */
     suspend fun createPackage(details: PackageDetails)
 
@@ -65,6 +71,18 @@ class FirebasePackageRepository(
             .get()
             .await()
         // Sorted here, not by Firestore: ordering on a second field would need an index.
+        return snapshot.documents
+            .sortedBy { it.getTimestamp("createdAt")?.seconds ?: Long.MAX_VALUE }
+            .mapNotNull { it.toFoodPackage() }
+    }
+
+    override suspend fun visiblePackagesOn(date: String): List<FoodPackage> {
+        // Two "equal to" filters need no extra index in Firestore.
+        val snapshot = firestore.collection(PACKAGES)
+            .whereEqualTo("pickupDate", date)
+            .whereEqualTo("visible", true)
+            .get()
+            .await()
         return snapshot.documents
             .sortedBy { it.getTimestamp("createdAt")?.seconds ?: Long.MAX_VALUE }
             .mapNotNull { it.toFoodPackage() }

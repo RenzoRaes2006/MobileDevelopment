@@ -33,6 +33,8 @@ class PackageFormViewModelTest {
 
         override suspend fun myPackagesOn(date: String): List<FoodPackage> = emptyList()
 
+        override suspend fun visiblePackagesOn(date: String): List<FoodPackage> = emptyList()
+
         override suspend fun createPackage(details: PackageDetails) {
             if (saveHangs) awaitCancellation()
             saveError?.let { throw it }
