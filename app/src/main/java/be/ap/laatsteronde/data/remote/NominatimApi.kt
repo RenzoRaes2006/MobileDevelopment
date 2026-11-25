@@ -30,7 +30,8 @@ data class NominatimAddress(
     fun addressParts(): AddressParts? {
         val parts = AddressParts(
             street = road.orEmpty().trim(),
-            houseNumber = houseNumber.orEmpty().trim(),
+            // A big building has several numbers in OpenStreetMap ("51;53;55"): a shop needs one, the first.
+            houseNumber = houseNumber.orEmpty().substringBefore(';').trim(),
             postcode = postcode.orEmpty().trim(),
             municipality = municipalityName().orEmpty()
         )

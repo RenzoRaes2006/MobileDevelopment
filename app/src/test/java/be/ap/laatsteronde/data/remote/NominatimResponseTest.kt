@@ -72,6 +72,16 @@ class NominatimResponseTest {
     }
 
     @Test
+    fun addressParts_withSeveralHouseNumbers_takesTheFirst() {
+        // Seen on the emulator for the AP campus: OpenStreetMap lists all numbers of the building.
+        val response = parse(
+            """{"address":{"road":"Ellermanstraat","house_number":"51;53;55;57;59;61;63","postcode":"2060","city":"Antwerpen"}}"""
+        )
+
+        assertEquals(AddressParts("Ellermanstraat", "51", "2060", "Antwerpen"), response.address?.addressParts())
+    }
+
+    @Test
     fun addressParts_trimsSpaces() {
         val response = parse("""{"address":{"road":" Dorpsstraat ","house_number":" 1 ","postcode":" 2830 ","town":" Mechelen "}}""")
 
