@@ -63,6 +63,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    // The device location (FusedLocationProviderClient).
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     // Navigation between screens (Navigation Compose).
     implementation("androidx.navigation:navigation-compose:2.9.5")
     // viewModel() inside composables.
