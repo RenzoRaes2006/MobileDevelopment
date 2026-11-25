@@ -108,35 +108,45 @@ fun PackageOfferCard(offer: PackageOffer, modifier: Modifier = Modifier) {
                 text = stringResource(R.string.customer_package_left, details.quantity),
                 style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp)
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val percent = discountPercent(details.priceCents, details.originalPriceCents)
-                if (percent > 0) {
-                    Text(
-                        text = stringResource(R.string.customer_package_discount, percent),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                }
-                Text(
-                    text = formatCents(details.originalPriceCents),
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Normal,
-                        textDecoration = TextDecoration.LineThrough
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = formatCents(details.priceCents),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            PriceWithDiscount(details.priceCents, details.originalPriceCents)
         }
+    }
+}
+
+/**
+ * The discount in a small frame ("−67%"), the old price crossed out and the price in green: the right
+ * side of a package card (Figma "Pakketkaart"). [compact] makes the price smaller, for a row in a card on the map.
+ */
+@Composable
+fun PriceWithDiscount(priceCents: Int, originalPriceCents: Int, modifier: Modifier = Modifier, compact: Boolean = false) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        val percent = discountPercent(priceCents, originalPriceCents)
+        if (percent > 0) {
+            Text(
+                text = stringResource(R.string.customer_package_discount, percent),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(
+            text = formatCents(originalPriceCents),
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = FontWeight.Normal,
+                textDecoration = TextDecoration.LineThrough
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = formatCents(priceCents),
+            style = (if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge)
+                .copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
