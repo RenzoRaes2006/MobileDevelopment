@@ -203,10 +203,11 @@ class ShopViewModel(
             location = pin
         )
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+            // The "saved" message of an earlier save goes away, so it does not stand next to an error.
+            _uiState.update { it.copy(isSaving = true, errorMessage = null, justSaved = false) }
             try {
-                // Without internet Firestore keeps the write in a queue and waits for ever, so
-                // after a while we tell the merchant instead of showing a spinner without end.
+                // Without internet Firestore waits for ever, so after a while we tell the
+                // merchant instead of showing a spinner without end.
                 withTimeout(SAVE_TIMEOUT_MILLIS) { shopRepository.saveMyShop(details) }
                 val saved = shopRepository.myShop()
                 _uiState.update { current ->

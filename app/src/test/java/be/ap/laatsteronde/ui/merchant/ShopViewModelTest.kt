@@ -345,6 +345,20 @@ class ShopViewModelTest {
     }
 
     @Test
+    fun saveFailsAfterAnEarlierSave_nolongerShowsSaved() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.save()
+        assertTrue(viewModel.uiState.value.justSaved)
+
+        shops.saveError = FirebaseNetworkException("offline")
+        viewModel.save()
+
+        // The old "Winkel opgeslagen" must not stand next to the error.
+        assertFalse(viewModel.uiState.value.justSaved)
+        assertEquals(R.string.error_no_internet, viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
     fun saveFailsForAnotherReason_showsTheSaveError() {
         shops.saveError = IllegalStateException("permission denied")
         val viewModel = viewModelWithValidForm()
