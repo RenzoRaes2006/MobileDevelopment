@@ -29,6 +29,13 @@
     <string name="logo_word_first">Laatste</string>
     <string name="logo_word_second">Ronde</string>
 
+    <!-- Location permission (K1) -->
+    <string name="location_dialog_title">Locatie gebruiken?</string>
+    <string name="location_dialog_text">Laatste Ronde gebruikt je locatie om pakketten in jouw buurt te tonen. Zonder locatie zie je de kaart op een standaardplek.</string>
+    <string name="location_dialog_allow">Toestaan</string>
+    <string name="location_dialog_not_now">Niet nu</string>
+    <string name="location_denied_notice">Locatie niet beschikbaar. De pin staat op een standaardplek.</string>
+
     <!-- Error messages -->
     <string name="error_name_empty">Vul je naam in.</string>
     <string name="error_email_invalid">Vul een geldig e-mailadres in.</string>

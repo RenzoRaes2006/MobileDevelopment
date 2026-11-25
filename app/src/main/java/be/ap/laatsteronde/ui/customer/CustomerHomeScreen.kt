@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -38,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.MapScreen
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.ui.theme.CarrotOrange
@@ -61,8 +64,16 @@ private enum class CustomerTab(@StringRes val label: Int, @DrawableRes val icon:
  * navigation bar floating above it. The selected tab is remembered across rotation.
  */
 @Composable
-fun CustomerHomeScreen(onLogout: () -> Unit) {
+fun CustomerHomeScreen(
+    onLogout: () -> Unit,
+    locationViewModel: LocationViewModel = viewModel(
+        factory = LocationViewModel.factory(LocalContext.current)
+    )
+) {
     var selectedTab by rememberSaveable { mutableStateOf(CustomerTab.DISCOVER) }
+    val locationState by locationViewModel.uiState.collectAsStateWithLifecycle()
+
+    LocationPermissionHandler(viewModel = locationViewModel, status = locationState.status)
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (selectedTab) {
@@ -72,11 +83,29 @@ fun CustomerHomeScreen(onLogout: () -> Unit) {
                 onLogout = onLogout
             )
             CustomerTab.MAP -> {
-                MapScreen()
+                MapScreen(location = locationState.location)
                 ProfileMenuButton(
                     onLogout = onLogout,
                     modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
                 )
+                if (locationState.status == LocationStatus.DENIED ||
+                    locationState.status == LocationStatus.UNAVAILABLE
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 16.dp, top = 16.dp, end = 80.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.location_denied_notice),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
             }
             CustomerTab.ORDERS -> PlaceholderScreen(
                 title = R.string.customer_tab_orders,
