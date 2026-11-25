@@ -1,0 +1,7 @@
+<!-- "Mijn locatie" on the map (Figma): a blue dot of 22 with a white border of 4. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#2B7BE4" />
+    <stroke android:width="4dp" android:color="#FFFFFF" />
+    <size android:width="22dp" android:height="22dp" />
+</shape>

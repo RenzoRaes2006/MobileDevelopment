@@ -1,0 +1,13 @@
+<!-- Pin of the shop on the map (Figma "Pin winkel"), 40 x 48. The tip is at the bottom middle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp" android:height="48dp"
+    android:viewportWidth="40" android:viewportHeight="48">
+    <path
+        android:pathData="M20 45.6667C20 45.6667 5 32.3333 5 20.6667C5 16.6884 6.58035 12.8731 9.3934 10.0601C12.2064 7.24702 16.0218 5.66667 20 5.66667C23.9782 5.66667 27.7936 7.24702 30.6066 10.0601C33.4196 12.8731 35 16.6884 35 20.6667C35 32.3333 20 45.6667 20 45.6667Z"
+        android:fillColor="#1F5E3B"
+        android:strokeColor="#FFFFFF" android:strokeWidth="2.5" />
+    <path
+        android:pathData="M20 26.5C23.2217 26.5 25.8333 23.8883 25.8333 20.6667C25.8333 17.445 23.2217 14.8333 20 14.8333C16.7783 14.8333 14.1667 17.445 14.1667 20.6667C14.1667 23.8883 16.7783 26.5 20 26.5Z"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF" android:strokeWidth="2.5" />
+</vector>
