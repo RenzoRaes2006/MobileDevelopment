@@ -145,6 +145,20 @@ class LocationViewModelTest {
     }
 
     @Test
+    fun changeLocation_keepsThePlaceButLetsTheCustomerChooseAnother() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+        viewModel.onPermissionResult(granted = true)
+
+        viewModel.onChangeLocation()
+
+        assertEquals(LocationStatus.CHOSEN, viewModel.uiState.value.status)
+        assertEquals(customerPosition, viewModel.uiState.value.location) // still where the customer is
+        viewModel.refresh()
+        assertEquals(1, provider.calls) // a refresh does not replace the chosen mode
+    }
+
+    @Test
     fun askAgain_startsOverSoTheExplanationComesBack() {
         val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
         viewModel.onLocationChosen(Coordinates(latitude = 51.0, longitude = 4.0))

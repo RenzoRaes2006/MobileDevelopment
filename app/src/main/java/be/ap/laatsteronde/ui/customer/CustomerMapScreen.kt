@@ -102,7 +102,7 @@ fun CustomerMapScreen(
             )
         }
 
-        if (status == LocationStatus.DENIED || status == LocationStatus.UNAVAILABLE) {
+        if (canChoose) {
             HintChip(
                 text = stringResource(R.string.location_choose_hint),
                 modifier = Modifier

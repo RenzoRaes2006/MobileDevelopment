@@ -83,7 +83,11 @@ fun CustomerHomeScreen(
             when (selectedTab) {
                 CustomerTab.DISCOVER -> DiscoverScreen(
                     municipality = municipality,
-                    onChangeLocation = locationViewModel::onAskAgain,
+                    // The municipality was tapped: go to the map, where a tap chooses another place.
+                    onChangeLocation = {
+                        locationViewModel.onChangeLocation()
+                        selectedTab = CustomerTab.MAP
+                    },
                     onLogout = onLogout
                 )
                 CustomerTab.MAP -> CustomerMapScreen(

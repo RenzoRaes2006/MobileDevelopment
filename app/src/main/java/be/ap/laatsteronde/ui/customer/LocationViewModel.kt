@@ -71,6 +71,15 @@ class LocationViewModel(private val locationProvider: LocationProvider) : ViewMo
         _uiState.value = LocationUiState(status = LocationStatus.CHOSEN, location = position)
     }
 
+    /**
+     * The customer wants another place (the municipality on Discover): from now on a tap on the map
+     * chooses the place. The current place stays until the customer taps.
+     */
+    fun onChangeLocation() {
+        fetchJob?.cancel()
+        _uiState.update { it.copy(status = LocationStatus.CHOSEN) }
+    }
+
     /** "Naar mijn locatie" after a "no" or a chosen place: start again, so the explanation and the question come back. */
     fun onAskAgain() {
         fetchJob?.cancel()
