@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,6 +58,7 @@ private fun fieldBorder(isError: Boolean, outline: androidx.compose.ui.graphics.
  * A text field as in the Figma form: a white box with a thin border and the text inside, with
  * the label above it (that is a separate [Text] in the screen, so [label] is only for screen readers).
  * [height], [radius] and [textSize] differ between the big fields and the ones in the address card.
+ * With [multiline] the box is at least [height] high and grows with the text (the description of a package).
  */
 @Composable
 internal fun FormTextField(
@@ -69,6 +71,7 @@ internal fun FormTextField(
     textSize: Int = 16,
     isError: Boolean = false,
     enabled: Boolean = true,
+    multiline: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     val textColor = MaterialTheme.colorScheme.onSurface
@@ -76,7 +79,8 @@ internal fun FormTextField(
         value = value,
         onValueChange = onValueChange,
         enabled = enabled,
-        singleLine = true,
+        singleLine = !multiline,
+        maxLines = if (multiline) MULTILINE_MAX_LINES else 1,
         textStyle = TextStyle(
             fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
             fontSize = textSize.sp,
@@ -86,26 +90,29 @@ internal fun FormTextField(
         keyboardOptions = keyboardOptions,
         modifier = modifier
             .fillMaxWidth()
-            .height(height)
+            .then(if (multiline) Modifier.heightIn(min = height) else Modifier.height(height))
             .semantics { contentDescription = label },
         decorationBox = { innerTextField ->
             Box(
-                contentAlignment = Alignment.CenterStart,
+                contentAlignment = if (multiline) Alignment.TopStart else Alignment.CenterStart,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(height)
+                    .then(if (multiline) Modifier.heightIn(min = height) else Modifier.height(height))
                     .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(radius))
                     .border(
                         fieldBorder(isError, MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.error),
                         RoundedCornerShape(radius)
                     )
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 12.dp, vertical = if (multiline) 14.dp else 0.dp)
             ) {
                 innerTextField()
             }
         }
     )
 }
+
+/** A multiline field grows with its text, up to this many lines; after that it scrolls. */
+private const val MULTILINE_MAX_LINES = 6
 
 /** The small label above a field. [size] is 14 for the big fields and 12 for the address card (a softer color there). */
 @Composable
