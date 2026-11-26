@@ -54,8 +54,8 @@ import be.ap.laatsteronde.ui.theme.isDarkTheme
 
 /**
  * The map tab (Figma "5 - Kaart"): the map with the position of the customer, with above it a bar with
- * the municipality and the round "Naar mijn locatie" button. Every shop with packages is a price
- * label ("€4") on the map; a tap on it shows a card with the shop at the bottom. The customer can
+ * the municipality and the round "Naar mijn locatie" button. Every shop with packages is a label
+ * with the name of the shop on the map (K4); a tap on it shows a card with the shop at the bottom. The customer can
  * only look at it: the button "Bekijk" of the Figma comes with reserving.
  *
  * Without a position (no permission, or not found) a tap on the map chooses a place.
@@ -137,7 +137,7 @@ fun CustomerMapScreen(
                 centerOn = location.location,
                 markerIcon = R.drawable.marker_my_location,
                 recenterKey = recenterKey,
-                pins = shops.map { MapPin(it.shop.ownerId, it.shop.details.location, formatPriceShort(it.fromPriceCents)) },
+                pins = shops.map { MapPin(it.shop.ownerId, it.shop.details.location, it.shop.details.name) },
                 selectedPinId = selectedShop?.shop?.ownerId,
                 onPinClick = { selectedShopId = it },
                 onMapTap = { selectedShopId = null },

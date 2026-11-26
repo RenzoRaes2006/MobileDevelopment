@@ -28,15 +28,15 @@ import org.osmdroid.views.overlay.Marker
 
 private const val DEFAULT_ZOOM = 17.0
 
-/** A shop on the map: a price label ([label], for example "€4") at [position]. [id] says which shop was tapped. */
+/** A shop on the map: a label with the name of the shop ([label]) at [position]. [id] says which shop was tapped. */
 data class MapPin(val id: String, val position: Coordinates, val label: String)
 
 /**
  * An OpenStreetMap map with one marker (the position of the customer or the pin of a shop) and,
- * if wanted, price labels for shops ([pins]).
+ * if wanted, name labels for shops ([pins]).
  *
  * - [position] is where the marker stands; null means no marker.
- * - [pins] are price labels of shops; the one with [selectedPinId] is green. A tap on a label goes to
+ * - [pins] are name labels of shops; the one with [selectedPinId] is green. A tap on a label goes to
  *   [onPinClick], a tap on the map itself to [onMapTap] (to close a card).
  * - [centerOn] is where the map looks. It moves there when [centerOn] or [recenterKey] changes,
  *   so the map does not jump back while the person looks around.
@@ -151,7 +151,7 @@ fun MarkerMap(
         mapView.invalidate()
     }
 
-    // The price labels of the shops. They are made again when the shops or the chosen shop change;
+    // The name labels of the shops. They are made again when the shops or the chosen shop change;
     // the chosen one is added last, so it is drawn on top.
     val pinMarkers = remember(mapView) { mutableListOf<Marker>() }
     LaunchedEffect(mapView, pins, selectedPinId) {
@@ -161,7 +161,7 @@ fun MarkerMap(
             val pinMarker = Marker(mapView).apply {
                 setInfoWindow(null)
                 this.position = GeoPoint(pin.position.latitude, pin.position.longitude) // "this": the parameter [position] has the same name
-                icon = priceMarkerDrawable(context, pin.label, selected = pin.id == selectedPinId)
+                icon = shopMarkerDrawable(context, pin.label, selected = pin.id == selectedPinId)
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 setOnMarkerClickListener { _, _ ->
                     currentOnPinClick?.invoke(pin.id)
