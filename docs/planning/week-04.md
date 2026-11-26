@@ -29,9 +29,13 @@ Doel: de klant ziet de pakketten van de winkels (alleen bekijken), de handelaar 
 - Locatie nakijken met cors location en specifieke locatie
 - Kijken of het duidelijker kan met knop achter navigatie balk
 
+## Keuzes bij de feedback (26/11)
+De branches bouwen op elkaar voort (elk vanaf de vorige, omdat ze allemaal deze planning aanpassen): `fix-remove-personal-data` → `fix-map-not-under-buttons` → de volgende. Mergen in die volgorde.
+- Kaart (punt 1): de opgave zegt niets over de schikking. Gekozen voor de eenvoudigste schikking die bij de Figma blijft: dezelfde zoekbalk en knop, maar boven de kaart in plaats van erop. De tip "Tik op de kaart …" staat ook boven de kaart.
+
 ## Tegen volgende week (2/12)
 Uit de feedback van de lector:
-- [ ] De kaart niet over het hele scherm laten lopen, zodat die niet door de knoppen (de navigatiebalk, de zoekbalk en de locatieknop) bedekt wordt
+- [x] De kaart niet over het hele scherm laten lopen, zodat die niet door de knoppen (de navigatiebalk, de zoekbalk en de locatieknop) bedekt wordt — de zoekbalk en de locatieknop staan nu boven de kaart, de kaart is een afgerond vlak dat stopt boven de navigatiebalk; het kaartje van een winkel staat onderaan in de kaart (branch `fix-map-not-under-buttons`)
 - [ ] De locaties op de kaart groter maken en de naam van de winkel tonen in plaats van de prijs
 - [ ] Foto's bij pakketten (zie ook de regel hieronder, H4)
 - [ ] De locatie nakijken met "coarse" (bij benadering) en "fine" (specifieke, nauwkeurige) locatie
