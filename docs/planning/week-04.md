@@ -14,10 +14,10 @@ Doel: de klant ziet de pakketten van de winkels (alleen bekijken), de handelaar 
 - [x] Regels: een handelaar kan alleen zijn eigen pakketten lezen (ook geen lijst van alle pakketten), een klant kan alle pakketten lezen; gepubliceerd en getest met `scripts/test-package-rules.mjs` op het live project (34 gevallen, alle goed)
 
 ## Problemen / niet gelukt
-- Er bleek maar één winkel in Firestore te staan ("Di papa", van het account handelaar@gmail.com, hernoemd van "Bakkerij NieuwX"), terwijl het account dipapa@gmail.com (aangemaakt om 14:34) geen winkel had. Oorzaak: geen fout in de app maar een sessie die door elkaar liep. Tijdens het testen wisselden Claude en de ontwikkelaar op dezelfde emulator van account (klant, handelaar), waardoor de sessie van dipapa werd uitgelogd en de emulator als handelaar@gmail.com bleef staan. Het scherm "Mijn winkel" toont nergens welk account ingelogd is, dus "Di papa" werd bij het verkeerde account opgeslagen; de pakketten van dat account bleven bij die winkel. Besluit: één winkel per handelaar-account; een tweede winkel is een tweede account.
-- Hersteld op 25/11 met de app zelf: dipapa kreeg zijn winkel "Di papa" (Kronenburgstraat 41a) via "Mijn winkel", en handelaar@gmail.com kreeg "Bakkerij NieuwX" (Ellermanstraat 58) terug, met de pin automatisch gezet door het adres. Gecontroleerd: dipapa ziet op "Vandaag" alleen zijn eigen winkel en geen pakketten van de andere winkel; er is geen gegevenslek tussen accounts. De fout is niet in de app gereproduceerd: het aanmaken van een nieuw account op het live project werd door de automatische controle geweigerd.
+- Er bleek maar één winkel in Firestore te staan ("Di papa", van het testaccount van de handelaar, hernoemd van "Bakkerij NieuwX"), terwijl een tweede handelaarsaccount (aangemaakt om 14:34) geen winkel had. Oorzaak: geen fout in de app maar een sessie die door elkaar liep. Tijdens het testen werd op dezelfde emulator van account gewisseld (klant, handelaar), waardoor de sessie van het tweede handelaarsaccount werd uitgelogd en de emulator als het testaccount van de handelaar bleef staan. Het scherm "Mijn winkel" toont nergens welk account ingelogd is, dus "Di papa" werd bij het verkeerde account opgeslagen; de pakketten van dat account bleven bij die winkel. Besluit: één winkel per handelaar-account; een tweede winkel is een tweede account.
+- Hersteld op 25/11 met de app zelf: het tweede handelaarsaccount kreeg zijn winkel "Di papa" (Kronenburgstraat 41a) via "Mijn winkel", en het testaccount van de handelaar kreeg "Bakkerij NieuwX" (Ellermanstraat 58) terug, met de pin automatisch gezet door het adres. Gecontroleerd: het tweede handelaarsaccount ziet op "Vandaag" alleen zijn eigen winkel en geen pakketten van de andere winkel; er is geen gegevenslek tussen accounts. De fout is niet in de app gereproduceerd: het aanmaken van een nieuw account op het live project werd door de automatische controle geweigerd.
 - Idee (niet gebouwd): in het profielmenu "Ingelogd als …" tonen, zodat duidelijk is welk account een scherm aanpast.
-- De klant ziet nog geen foto's: het grijze fotovakje staat er als plaatsvervanger tot de foto bij een pakket (H5) er is.
+- De klant ziet nog geen foto's: het grijze fotovakje staat er als plaatsvervanger tot de foto bij een pakket (H4) er is.
 - Uit de Figma ontbreken nog: de filters (Alle, ≤ 5 km, Bakker, Supermarkt), de rij "Laatste ronde" met "sluit over 25 min", het hartje en de knop "Bekijk". Het hartje en "Bekijk" horen bij favorieten en reserveren.
 - Op de emulator duurde het soms even voor de gemeente bovenaan verscheen (Nominatim, en we wachten op de plek van de klant). De lijst en de kaart hebben daar geen last van.
 - Tijdens het testen zette ik "overschot" van het handelaaraccount uit; het staat nu op "Offline gehaald".
@@ -33,12 +33,12 @@ Doel: de klant ziet de pakketten van de winkels (alleen bekijken), de handelaar 
 Uit de feedback van de lector:
 - [ ] De kaart niet over het hele scherm laten lopen, zodat die niet door de knoppen (de navigatiebalk, de zoekbalk en de locatieknop) bedekt wordt
 - [ ] De locaties op de kaart groter maken en de naam van de winkel tonen in plaats van de prijs
-- [ ] Foto's bij pakketten (zie ook de regel hieronder, H5)
+- [ ] Foto's bij pakketten (zie ook de regel hieronder, H4)
 - [ ] De locatie nakijken met "coarse" (bij benadering) en "fine" (specifieke, nauwkeurige) locatie
 - [ ] Kijken of het duidelijker kan met een knop achter de navigatiebalk
 
 Eerder gepland:
-- [ ] Foto bij een pakket: verkleinen, JPEG, Base64 (H5), en tonen in de lijst, op de kaart en bij de handelaar
+- [ ] Foto bij een pakket: verkleinen, JPEG, Base64 (H4), en tonen in de lijst, op de kaart en bij de handelaar
 - [ ] Filters en de rij "Laatste ronde" op Ontdekken (K3, de rest)
 - [ ] Pakketdetail met beschrijving (K7)
 
@@ -46,4 +46,5 @@ Eerder gepland:
 - [ ] Reserveren, ophaalticket en bestellingen (K8/K9/K10), reservaties bekijken door de handelaar
 
 ## Vragen voor de docent
-- ...
+- Moeten de collecties en velden exact zijn zoals in de opgave (`bags`, `stores`, `quantityLeft`, `pickupStart`/`pickupEnd` als Timestamp, `location` als GeoPoint, `storeName`, `photoBase64`)? Wij gebruiken nu `packages` en `shops` met eigen veldnamen (`quantity`, `pickupDate` + `pickupFrom`/`pickupTo` als tekst, `latitude`/`longitude`). Het datamodel blijft zoals het is tot we het antwoord hebben; nieuwe velden (zoals `photoBase64`) voegen we wel toe.
+- Mag "Je locatie wordt niet bewaard of gedeeld" in de locatie-uitleg blijven staan? De coördinaten gaan naar Nominatim en een afgeronde plek staat 30 dagen in de Room-cache.
