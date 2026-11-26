@@ -40,10 +40,16 @@ enum class LocationStatus {
 /**
  * [location] is always filled: the real position when [status] is FOUND,
  * otherwise [DEFAULT_LOCATION], so the map always has something to show.
+ *
+ * [precise] is false when the customer only allowed the approximate location ("Bij benadering"):
+ * the position can then be a few kilometres off. [blockedInSettings] is true when Android no longer
+ * shows the question (denied for good): only the settings of the app can still give the permission.
  */
 data class LocationUiState(
     val status: LocationStatus = LocationStatus.UNKNOWN,
-    val location: Coordinates = LocationViewModel.DEFAULT_LOCATION
+    val location: Coordinates = LocationViewModel.DEFAULT_LOCATION,
+    val precise: Boolean = true,
+    val blockedInSettings: Boolean = false
 )
 
 /** Remembers the answer to the location question and the position of the customer. */
@@ -54,21 +60,46 @@ class LocationViewModel(private val locationProvider: LocationProvider) : ViewMo
 
     private var fetchJob: Job? = null
 
-    /** Called with the answer of the permission dialog (or true when the permission was already there). */
-    fun onPermissionResult(granted: Boolean) {
+    /**
+     * Called with the answer of the permission dialog (or true when the permission was already there).
+     * [precise] is false when only the approximate location was allowed. [canAskAgain] is false when
+     * the customer denied it for good: Android will not show the question again.
+     */
+    fun onPermissionResult(granted: Boolean, precise: Boolean = granted, canAskAgain: Boolean = true) {
         if (!granted) {
             fetchJob?.cancel()
-            _uiState.value = LocationUiState(status = LocationStatus.DENIED)
+            _uiState.value = LocationUiState(status = LocationStatus.DENIED, blockedInSettings = !canAskAgain)
             return
         }
-        _uiState.update { it.copy(status = LocationStatus.LOADING) }
+        _uiState.update { it.copy(status = LocationStatus.LOADING, precise = precise, blockedInSettings = false) }
         fetchLocation()
+    }
+
+    /**
+     * Called every time the app comes back to the front with the permission as it is now: the customer may have
+     * changed it in the settings of the app (allowed it, taken it away, or switched on the precise location).
+     */
+    fun onPermissionChecked(granted: Boolean, precise: Boolean) {
+        when (_uiState.value.status) {
+            // Back from the settings with the permission: look up the position.
+            LocationStatus.DENIED -> if (granted) onPermissionResult(granted = true, precise = precise)
+            LocationStatus.FOUND, LocationStatus.UNAVAILABLE, LocationStatus.LOADING ->
+                if (granted) {
+                    _uiState.update { it.copy(precise = precise) }
+                    refresh() // the customer may have moved
+                } else {
+                    // The permission was taken away in the settings.
+                    onPermissionResult(granted = false)
+                }
+            // The question is not answered yet, or the customer chose a place: that stays.
+            LocationStatus.UNKNOWN, LocationStatus.CHOSEN -> Unit
+        }
     }
 
     /** The customer tapped a place on the map: that place is used instead of the real position. */
     fun onLocationChosen(position: Coordinates) {
         fetchJob?.cancel()
-        _uiState.value = LocationUiState(status = LocationStatus.CHOSEN, location = position)
+        _uiState.update { it.copy(status = LocationStatus.CHOSEN, location = position) }
     }
 
     /**
@@ -80,10 +111,13 @@ class LocationViewModel(private val locationProvider: LocationProvider) : ViewMo
         _uiState.update { it.copy(status = LocationStatus.CHOSEN) }
     }
 
-    /** "Naar mijn locatie" after a "no" or a chosen place: start again, so the explanation and the question come back. */
+    /**
+     * "Naar mijn locatie" after a "no" or a chosen place: start again, so the explanation and the question come back.
+     * A permission that was denied for good stays so: the explanation then sends the customer to the settings.
+     */
     fun onAskAgain() {
         fetchJob?.cancel()
-        _uiState.value = LocationUiState()
+        _uiState.update { LocationUiState(blockedInSettings = it.blockedInSettings) }
     }
 
     /**
@@ -104,9 +138,9 @@ class LocationViewModel(private val locationProvider: LocationProvider) : ViewMo
             val found = locationProvider.currentLocation()
             _uiState.update { current ->
                 when {
-                    found != null -> LocationUiState(status = LocationStatus.FOUND, location = found)
+                    found != null -> current.copy(status = LocationStatus.FOUND, location = found)
                     current.status == LocationStatus.FOUND -> current
-                    else -> LocationUiState(status = LocationStatus.UNAVAILABLE)
+                    else -> current.copy(status = LocationStatus.UNAVAILABLE, location = DEFAULT_LOCATION)
                 }
             }
         }

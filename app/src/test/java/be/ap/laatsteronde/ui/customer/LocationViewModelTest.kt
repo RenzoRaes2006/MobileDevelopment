@@ -9,6 +9,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -177,5 +179,118 @@ class LocationViewModelTest {
 
         assertEquals(LocationStatus.UNAVAILABLE, viewModel.uiState.value.status)
         assertEquals(LocationViewModel.DEFAULT_LOCATION, viewModel.uiState.value.location)
+    }
+
+    // The four cases of the permission that the assignment asks for: precise, only approximate,
+    // denied, and denied for good (only the app settings can still give it).
+
+    @Test
+    fun preciseLocationGranted_isMarkedPrecise() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+
+        viewModel.onPermissionResult(granted = true, precise = true)
+
+        assertEquals(LocationStatus.FOUND, viewModel.uiState.value.status)
+        assertTrue(viewModel.uiState.value.precise)
+    }
+
+    @Test
+    fun onlyApproximateLocationGranted_findsThePositionButIsMarkedApproximate() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+
+        viewModel.onPermissionResult(granted = true, precise = false)
+
+        assertEquals(LocationStatus.FOUND, viewModel.uiState.value.status)
+        assertEquals(customerPosition, viewModel.uiState.value.location)
+        assertFalse(viewModel.uiState.value.precise)
+    }
+
+    @Test
+    fun approximate_staysApproximateAfterARefresh() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+        viewModel.onPermissionResult(granted = true, precise = false)
+
+        viewModel.refresh()
+
+        assertEquals(2, provider.calls)
+        assertFalse(viewModel.uiState.value.precise)
+    }
+
+    @Test
+    fun deniedOnce_canStillBeAskedAgain() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+
+        viewModel.onPermissionResult(granted = false, canAskAgain = true)
+
+        assertEquals(LocationStatus.DENIED, viewModel.uiState.value.status)
+        assertFalse(viewModel.uiState.value.blockedInSettings)
+    }
+
+    @Test
+    fun deniedForGood_isBlockedInSettings_alsoAfterAskingAgainOrChoosingAPlace() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+
+        viewModel.onPermissionResult(granted = false, canAskAgain = false)
+        assertTrue(viewModel.uiState.value.blockedInSettings)
+
+        viewModel.onLocationChosen(Coordinates(latitude = 51.0, longitude = 4.0))
+        assertTrue(viewModel.uiState.value.blockedInSettings)
+
+        // "Naar mijn locatie": the explanation comes back, but it must send the customer to the settings.
+        viewModel.onAskAgain()
+        assertEquals(LocationStatus.UNKNOWN, viewModel.uiState.value.status)
+        assertTrue(viewModel.uiState.value.blockedInSettings)
+    }
+
+    @Test
+    fun backFromSettingsWithPermission_looksUpThePosition() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+        viewModel.onPermissionResult(granted = false, canAskAgain = false)
+
+        viewModel.onPermissionChecked(granted = true, precise = true)
+
+        assertEquals(LocationStatus.FOUND, viewModel.uiState.value.status)
+        assertEquals(customerPosition, viewModel.uiState.value.location)
+        assertTrue(viewModel.uiState.value.precise)
+        assertFalse(viewModel.uiState.value.blockedInSettings)
+    }
+
+    @Test
+    fun backFromSettingsWithPreciseLocation_isNoLongerApproximate() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+        viewModel.onPermissionResult(granted = true, precise = false)
+
+        viewModel.onPermissionChecked(granted = true, precise = true)
+
+        assertTrue(viewModel.uiState.value.precise)
+    }
+
+    @Test
+    fun permissionTakenAwayInSettings_isDenied() {
+        val viewModel = LocationViewModel(FakeLocationProvider(customerPosition))
+        viewModel.onPermissionResult(granted = true)
+
+        viewModel.onPermissionChecked(granted = false, precise = false)
+
+        assertEquals(LocationStatus.DENIED, viewModel.uiState.value.status)
+        assertEquals(LocationViewModel.DEFAULT_LOCATION, viewModel.uiState.value.location)
+    }
+
+    @Test
+    fun permissionChecked_beforeTheQuestionOrWithAChosenPlace_changesNothing() {
+        val provider = FakeLocationProvider(customerPosition)
+        val viewModel = LocationViewModel(provider)
+
+        viewModel.onPermissionChecked(granted = false, precise = false) // explanation still open
+        assertEquals(LocationStatus.UNKNOWN, viewModel.uiState.value.status)
+
+        val chosen = Coordinates(latitude = 51.0, longitude = 4.0)
+        viewModel.onLocationChosen(chosen)
+        viewModel.onPermissionChecked(granted = true, precise = true)
+        assertEquals(LocationStatus.CHOSEN, viewModel.uiState.value.status)
+        assertEquals(chosen, viewModel.uiState.value.location)
+        assertEquals(0, provider.calls)
     }
 }
