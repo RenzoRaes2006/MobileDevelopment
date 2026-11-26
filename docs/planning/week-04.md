@@ -34,6 +34,7 @@ De branches bouwen op elkaar voort (elk vanaf de vorige, omdat ze allemaal deze 
 - Kaart (punt 1): de opgave zegt niets over de schikking. Gekozen voor de eenvoudigste schikking die bij de Figma blijft: dezelfde zoekbalk en knop, maar boven de kaart in plaats van erop. De tip "Tik op de kaart …" staat ook boven de kaart.
 - Winkellabels (punt 2): de opgave vraagt bij K4 "marker per winkel … tik op marker → winkelnaam + knop Bekijk". De naam staat nu op de marker zelf en bovenaan het kaartje. De knop "Bekijk" ontbreekt nog, omdat het pakketdetail (K7) er nog niet is; een knop die nergens heen gaat, bouwen we niet. De prijs staat nog per aanbieding in het kaartje. `formatPriceShort` en `ShopOffers.fromPriceCents` worden in de app niet meer gebruikt (alleen nog in de tests); weghalen na overleg.
 - Locatie (punt 3): gebaseerd op de technische vereiste 7 van de opgave ("alle gevallen: precies, enkel benadering, geweigerd, definitief geweigerd (knop naar app-instellingen)"). "Definitief geweigerd" herkennen we zoals Android het aanraadt: na een "nee" zegt `shouldShowRequestPermissionRationale` false. Voor "bij benadering" sturen we de klant naar de instellingen (eenvoudigste weg, dezelfde knop als bij definitief geweigerd) in plaats van de vraag opnieuw te stellen. De melding staat alleen op de kaart, niet op Ontdekken. Beperking: wie op Android 11+ het venster wegtikt zonder te kiezen, kan als "definitief geweigerd" gezien worden; de knop naar de instellingen werkt dan nog altijd.
+- Navigatiebalk (punt 4): de feedback is vaag. Gekozen uitleg: wat achter de zwevende balk schuift (de laatste pakketkaart, markers en de eigen positie op de kaart) is onduidelijk, dus krijgt de balk een eigen strook. Dat past bij de opgave, die een gewone "bottom navigation bar" vraagt (Schermen: "Klant: bottom navigation bar met Ontdekken, Kaart, Bestellingen, Favorieten"). Andere mogelijke uitleg: (a) de knop "Bekijk" uit K4 in het kaartje op de kaart (komt met K7, het pakketdetail); (b) de systeemnavigatiebalk van Android (de app houdt daar al rekening mee met `safeDrawingPadding`); (c) de locatieknop naast de navigatiebalk zetten in plaats van bovenaan. Bij de handelaar (Vandaag, Mijn winkel) is niets veranderd, om geen conflict te maken met lopend werk; daar kan het op dezelfde manier.
 
 ## Tegen volgende week (2/12)
 Uit de feedback van de lector:
@@ -46,7 +47,7 @@ Uit de feedback van de lector:
   - geweigerd: standaardlocatie, de klant kiest een plek op de kaart; "Naar mijn locatie" vraagt opnieuw;
   - definitief geweigerd: het uitlegscherm zegt dat de locatie eerder geweigerd is en de knop wordt "Open instellingen" (de app-pagina in de instellingen); op de kaart staat een melding met dezelfde knop.
   Terug in de app wordt de permissie opnieuw gelezen: toegestaan in de instellingen → de positie wordt gezocht; afgenomen → standaardlocatie; precies aangezet → de melding verdwijnt.
-- [ ] Kijken of het duidelijker kan met een knop achter de navigatiebalk
+- [x] Kijken of het duidelijker kan met een knop achter de navigatiebalk — begrepen als "er mag niets (knop, kaart, lijst) achter de navigatiebalk zitten": bij de klant heeft de zwevende balk nu een eigen strook onderaan; de lijst op Ontdekken en de kaart stoppen erboven (branch `fix-nothing-behind-nav-bar`). Nog na te vragen bij de lector of dit bedoeld was
 
 Eerder gepland:
 - [ ] Foto bij een pakket: verkleinen, JPEG, Base64 (H4), en tonen in de lijst, op de kaart en bij de handelaar
@@ -57,5 +58,6 @@ Eerder gepland:
 - [ ] Reserveren, ophaalticket en bestellingen (K8/K9/K10), reservaties bekijken door de handelaar
 
 ## Vragen voor de docent
+- Bedoelde u met "kijken of het duidelijker kan met een knop achter de navigatiebalk" dat er niets achter de zwevende navigatiebalk mag zitten (zo hebben we het nu gebouwd), of iets anders (de knop "Bekijk" op de kaart, de locatieknop bij de balk)?
 - Moeten de collecties en velden exact zijn zoals in de opgave (`bags`, `stores`, `quantityLeft`, `pickupStart`/`pickupEnd` als Timestamp, `location` als GeoPoint, `storeName`, `photoBase64`)? Wij gebruiken nu `packages` en `shops` met eigen veldnamen (`quantity`, `pickupDate` + `pickupFrom`/`pickupTo` als tekst, `latitude`/`longitude`). Het datamodel blijft zoals het is tot we het antwoord hebben; nieuwe velden (zoals `photoBase64`) voegen we wel toe.
 - Mag "Je locatie wordt niet bewaard of gedeeld" in de locatie-uitleg blijven staan? De coördinaten gaan naar Nominatim en een afgeronde plek staat 30 dagen in de Room-cache.
