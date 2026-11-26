@@ -1,5 +1,9 @@
 package be.ap.laatsteronde.ui.merchant
 
+import android.content.ActivityNotFoundException
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -35,21 +40,33 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.data.CameraPhoto
+import be.ap.laatsteronde.data.GalleryPhoto
 import be.ap.laatsteronde.ui.auth.FieldError
 import be.ap.laatsteronde.ui.theme.OSMTheme
 
 /**
  * "Nieuw pakket" (Figma "Pakket aanmaken"): the form to put a package online. It has no navigation
  * bar; the cross at the top and "Pakket online zetten" both lead back to "Vandaag" ([onDone]).
- * The photo (Camera, Galerij) comes with H5. All logic is in [PackageFormViewModel].
+ * The photo comes from the camera (TakePicturePreview) or the gallery (PickVisualMedia); neither needs a
+ * permission (H4). All logic is in [PackageFormViewModel].
  */
 @Composable
 fun NewPackageScreen(
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PackageFormViewModel = viewModel(factory = PackageFormViewModel.factory())
+    viewModel: PackageFormViewModel = viewModel(factory = PackageFormViewModel.factory(LocalContext.current))
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // The camera app gives a small bitmap, or null when the merchant went back without a photo.
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        bitmap?.let { viewModel.onPhotoPicked(CameraPhoto(it)) }
+    }
+    // The photo picker of Android gives the address of the chosen photo, or null when nothing was chosen.
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.onPhotoPicked(GalleryPhoto(it)) }
+    }
 
     // After a successful save the list on Vandaag shows the new package.
     LaunchedEffect(state.saved) {
@@ -65,6 +82,17 @@ fun NewPackageScreen(
         onQuantityChange = viewModel::onQuantityChange,
         onPickupFromChange = viewModel::onPickupFromChange,
         onPickupToChange = viewModel::onPickupToChange,
+        onCamera = {
+            try {
+                cameraLauncher.launch(null)
+            } catch (e: ActivityNotFoundException) {
+                viewModel.onCameraUnavailable() // a phone without a camera app
+            }
+        },
+        onGallery = {
+            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        },
+        onRemovePhoto = viewModel::onPhotoRemoved,
         onSave = viewModel::save,
         onClose = onDone,
         modifier = modifier
@@ -82,6 +110,9 @@ private fun NewPackageContent(
     onQuantityChange: (String) -> Unit,
     onPickupFromChange: (String) -> Unit,
     onPickupToChange: (String) -> Unit,
+    onCamera: () -> Unit,
+    onGallery: () -> Unit,
+    onRemovePhoto: () -> Unit,
     onSave: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
@@ -116,6 +147,17 @@ private fun NewPackageContent(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
+            FieldLabel(R.string.package_label_photo)
+            PackagePhotoPicker(
+                photoBase64 = state.photoBase64,
+                isProcessing = state.isProcessingPhoto,
+                photoError = state.photoError,
+                onCamera = onCamera,
+                onGallery = onGallery,
+                onRemove = onRemovePhoto
+            )
+
+            Spacer(Modifier.height(16.dp))
             LabeledField(R.string.package_label_title) {
                 FormTextField(
                     value = state.title,
@@ -204,7 +246,7 @@ private fun NewPackageContent(
         // The button stays at the bottom while the form scrolls.
         Button(
             onClick = onSave,
-            enabled = !state.isSaving,
+            enabled = !state.isSaving && !state.isProcessingPhoto,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 16.dp)
@@ -239,7 +281,8 @@ private fun NewPackageContentPreview() {
                 priceError = R.string.error_package_price_not_lower
             ),
             onTitleChange = {}, onDescriptionChange = {}, onPriceChange = {}, onOriginalValueChange = {},
-            onQuantityChange = {}, onPickupFromChange = {}, onPickupToChange = {}, onSave = {}, onClose = {}
+            onQuantityChange = {}, onPickupFromChange = {}, onPickupToChange = {},
+            onCamera = {}, onGallery = {}, onRemovePhoto = {}, onSave = {}, onClose = {}
         )
     }
 }

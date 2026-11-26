@@ -41,9 +41,17 @@
     <string name="error_shop_save_failed">Je winkel opslaan is mislukt. Probeer het opnieuw.</string>
     <string name="error_shop_load_failed">Je winkel laden is mislukt. Probeer het opnieuw.</string>
 
-    <!-- Nieuw pakket (Figma "Pakket aanmaken", H3). The photo (Camera, Galerij) comes with H5. -->
+    <!-- Nieuw pakket (Figma "Pakket aanmaken", H3), with the photo (Camera, Galerij, H4). -->
     <string name="package_new_title">Nieuw pakket</string>
     <string name="package_close">Sluiten</string>
+    <string name="package_label_photo">Foto</string>
+    <string name="package_photo_none">Nog geen foto gekozen</string>
+    <string name="package_photo_chosen">Gekozen foto van het pakket</string>
+    <string name="package_photo_of">Foto van %1$s</string>
+    <string name="package_photo_camera">Camera</string>
+    <string name="package_photo_gallery">Galerij</string>
+    <string name="package_photo_remove">Foto verwijderen</string>
+    <string name="package_photo_processing">Foto verkleinen…</string>
     <string name="package_label_title">Titel</string>
     <string name="package_label_description">Beschrijving</string>
     <string name="package_label_price">Prijs (€)</string>
@@ -64,6 +72,9 @@
     <string name="error_package_quantity_invalid">Vul een aantal in van 1 tot 999.</string>
     <string name="error_package_time_invalid">Vul de tijd in als uur:minuten, bijvoorbeeld 18:00.</string>
     <string name="error_package_window_order">Het einde moet na het begin liggen.</string>
+    <string name="error_photo_unreadable">Deze foto kon niet gelezen worden. Kies een andere foto.</string>
+    <string name="error_photo_too_large">Deze foto is te groot. Kies een andere foto.</string>
+    <string name="error_camera_unavailable">Er is geen camera-app op dit toestel. Kies een foto uit de galerij.</string>
     <string name="error_package_save_failed">Je pakket opslaan is mislukt. Probeer het opnieuw.</string>
 
     <!-- Vandaag (Figma "Vandaag", H4) -->

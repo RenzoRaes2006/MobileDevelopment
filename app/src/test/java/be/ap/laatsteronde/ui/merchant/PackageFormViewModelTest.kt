@@ -3,7 +3,10 @@ package be.ap.laatsteronde.ui.merchant
 import be.ap.laatsteronde.R
 import be.ap.laatsteronde.data.FoodPackage
 import be.ap.laatsteronde.data.PackageDetails
+import be.ap.laatsteronde.data.PHOTO_BASE64_MAX_LENGTH
 import be.ap.laatsteronde.data.PackageRepository
+import be.ap.laatsteronde.data.PhotoEncoder
+import be.ap.laatsteronde.data.PickedPhoto
 import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +47,23 @@ class PackageFormViewModelTest {
         override suspend fun setVisible(packageId: String, visible: Boolean) = Unit
     }
 
+    /** Gives a fixed text instead of scaling a real photo; [result] null means "cannot be read". */
+    private class FakePhotoEncoder : PhotoEncoder {
+        var result: String? = "BASE64PHOTO"
+
+        /** Like a very large photo: the work never finishes. */
+        var hangs = false
+        override suspend fun toBase64(photo: PickedPhoto): String? {
+            if (hangs) awaitCancellation()
+            return result
+        }
+    }
+
+    /** A Bitmap or Uri cannot be made in a JVM test; the fake encoder does not look at the photo anyway. */
+    private object TestPhoto : PickedPhoto
+
     private lateinit var packages: FakePackageRepository
+    private lateinit var photos: FakePhotoEncoder
     private val scheduler = TestCoroutineScheduler() // lets a test move the clock forward
 
     @Before
@@ -52,6 +71,7 @@ class PackageFormViewModelTest {
         // viewModelScope runs on Dispatchers.Main, which does not exist in a plain JVM test.
         Dispatchers.setMain(UnconfinedTestDispatcher(scheduler))
         packages = FakePackageRepository()
+        photos = FakePhotoEncoder()
     }
 
     @After
@@ -59,7 +79,7 @@ class PackageFormViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = PackageFormViewModel(packages, today = { "2026-11-25" })
+    private fun viewModel() = PackageFormViewModel(packages, photos, today = { "2026-11-25" })
 
     /** A form as in the Figma, with the price lower than the original value. */
     private fun viewModelWithValidForm(): PackageFormViewModel = viewModel().apply {
@@ -337,5 +357,94 @@ class PackageFormViewModelTest {
         viewModel.save()
 
         assertEquals(1, packages.created.size)
+    }
+
+    // The photo (H4)
+
+    @Test
+    fun withoutPhoto_savesThePackageWithoutPhoto() {
+        val viewModel = viewModelWithValidForm()
+
+        viewModel.save()
+
+        assertNull(packages.created.single().photoBase64)
+    }
+
+    @Test
+    fun photoPicked_isShownAndSavedWithThePackage() {
+        val viewModel = viewModelWithValidForm()
+
+        viewModel.onPhotoPicked(TestPhoto)
+        assertEquals("BASE64PHOTO", viewModel.uiState.value.photoBase64)
+        assertFalse(viewModel.uiState.value.isProcessingPhoto)
+
+        viewModel.save()
+        assertEquals("BASE64PHOTO", packages.created.single().photoBase64)
+    }
+
+    @Test
+    fun photoThatCannotBeRead_givesAMessageAndKeepsTheOldPhoto() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.onPhotoPicked(TestPhoto)
+        photos.result = null
+
+        viewModel.onPhotoPicked(TestPhoto)
+
+        assertEquals(R.string.error_photo_unreadable, viewModel.uiState.value.photoError)
+        assertEquals("BASE64PHOTO", viewModel.uiState.value.photoBase64)
+    }
+
+    @Test
+    fun photoTooLarge_givesAMessageAndIsNotKept() {
+        val viewModel = viewModelWithValidForm()
+        photos.result = "A".repeat(PHOTO_BASE64_MAX_LENGTH + 1)
+
+        viewModel.onPhotoPicked(TestPhoto)
+
+        assertEquals(R.string.error_photo_too_large, viewModel.uiState.value.photoError)
+        assertNull(viewModel.uiState.value.photoBase64)
+    }
+
+    @Test
+    fun removePhoto_savesThePackageWithoutPhoto() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.onPhotoPicked(TestPhoto)
+
+        viewModel.onPhotoRemoved()
+        viewModel.save()
+
+        assertNull(viewModel.uiState.value.photoBase64)
+        assertNull(packages.created.single().photoBase64)
+    }
+
+    @Test
+    fun noCameraApp_givesAMessage() {
+        val viewModel = viewModel()
+
+        viewModel.onCameraUnavailable()
+
+        assertEquals(R.string.error_camera_unavailable, viewModel.uiState.value.photoError)
+    }
+
+    @Test
+    fun aNewPhoto_clearsTheOldPhotoMessage() {
+        val viewModel = viewModel()
+        viewModel.onCameraUnavailable()
+
+        viewModel.onPhotoPicked(TestPhoto)
+
+        assertNull(viewModel.uiState.value.photoError)
+    }
+
+    @Test
+    fun whileThePhotoIsBeingMadeSmaller_saveWaits() {
+        val viewModel = viewModelWithValidForm()
+        photos.hangs = true
+
+        viewModel.onPhotoPicked(TestPhoto)
+        viewModel.save()
+
+        assertTrue(viewModel.uiState.value.isProcessingPhoto)
+        assertTrue(packages.created.isEmpty())
     }
 }

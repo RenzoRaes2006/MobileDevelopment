@@ -1,5 +1,6 @@
 package be.ap.laatsteronde.ui.merchant
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -7,9 +8,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.data.AndroidPhotoEncoder
 import be.ap.laatsteronde.data.FirebasePackageRepository
+import be.ap.laatsteronde.data.PHOTO_BASE64_MAX_LENGTH
 import be.ap.laatsteronde.data.PackageDetails
 import be.ap.laatsteronde.data.PackageRepository
+import be.ap.laatsteronde.data.PhotoEncoder
+import be.ap.laatsteronde.data.PickedPhoto
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +33,8 @@ internal const val PACKAGE_QUANTITY_MAX = 999
  * Everything the screen "Nieuw pakket" shows (Figma "Pakket aanmaken"). The number fields are
  * text, because the merchant types them; they are checked when [PackageFormViewModel.save] is called.
  * [saved] becomes true after a successful save: the screen then goes back to Vandaag.
+ * [photoBase64] is the chosen photo, already small and in Base64 (H4); [isProcessingPhoto] is true while
+ * it is being made smaller. The photo lives here, in the ViewModel, so it survives a rotation.
  */
 data class PackageFormUiState(
     val title: String = "",
@@ -37,6 +44,9 @@ data class PackageFormUiState(
     val quantity: String = "",
     val pickupFrom: String = "",
     val pickupTo: String = "",
+    val photoBase64: String? = null,
+    val isProcessingPhoto: Boolean = false,
+    @StringRes val photoError: Int? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
     @StringRes val titleError: Int? = null,
@@ -51,9 +61,11 @@ data class PackageFormUiState(
 /**
  * Checks and saves a new package of the signed-in merchant. [today] gives the date of the
  * pick-up window ("yyyy-MM-dd"); it is a parameter so a unit test can use a fixed date.
+ * [photoEncoder] makes a photo small and turns it into Base64.
  */
 class PackageFormViewModel(
     private val packageRepository: PackageRepository,
+    private val photoEncoder: PhotoEncoder,
     private val today: () -> String = ::todayAsText
 ) : ViewModel() {
 
@@ -85,9 +97,32 @@ class PackageFormViewModel(
     fun onPickupToChange(to: String) =
         _uiState.update { it.copy(pickupTo = to, timeError = null, errorMessage = null) }
 
+    /** The merchant took or chose a photo: make it small (on Dispatchers.Default, in the encoder) and keep it. */
+    fun onPhotoPicked(photo: PickedPhoto) {
+        _uiState.update { it.copy(isProcessingPhoto = true, photoError = null, errorMessage = null) }
+        viewModelScope.launch {
+            val base64 = photoEncoder.toBase64(photo)
+            _uiState.update {
+                when {
+                    // The old photo (if any) stays when the new one cannot be used.
+                    base64 == null -> it.copy(isProcessingPhoto = false, photoError = R.string.error_photo_unreadable)
+                    base64.length > PHOTO_BASE64_MAX_LENGTH ->
+                        it.copy(isProcessingPhoto = false, photoError = R.string.error_photo_too_large)
+                    else -> it.copy(isProcessingPhoto = false, photoBase64 = base64)
+                }
+            }
+        }
+    }
+
+    fun onPhotoRemoved() = _uiState.update { it.copy(photoBase64 = null, photoError = null) }
+
+    /** The phone has no camera app to take the photo. */
+    fun onCameraUnavailable() = _uiState.update { it.copy(photoError = R.string.error_camera_unavailable) }
+
     fun save() {
         val state = _uiState.value
-        if (state.isSaving || state.saved) return
+        // While the photo is being made smaller, the package would be saved without it.
+        if (state.isSaving || state.saved || state.isProcessingPhoto) return
 
         val title = state.title.trim()
         val description = state.description.trim()
@@ -143,7 +178,8 @@ class PackageFormViewModel(
             quantity = quantity,
             pickupDate = today(),
             pickupFrom = from,
-            pickupTo = to
+            pickupTo = to,
+            photoBase64 = state.photoBase64
         )
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
@@ -166,9 +202,11 @@ class PackageFormViewModel(
     }
 
     companion object {
-        /** Builds the ViewModel with Firestore. */
-        fun factory(): ViewModelProvider.Factory = viewModelFactory {
-            initializer { PackageFormViewModel(FirebasePackageRepository()) }
+        /** Builds the ViewModel with Firestore and the real photo encoder. */
+        fun factory(context: Context): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                PackageFormViewModel(FirebasePackageRepository(), AndroidPhotoEncoder(context.applicationContext))
+            }
         }
     }
 }
