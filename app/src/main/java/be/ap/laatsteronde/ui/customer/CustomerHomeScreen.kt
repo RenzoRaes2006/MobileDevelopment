@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,8 +49,9 @@ private enum class CustomerTab(@StringRes val label: Int, @DrawableRes val icon:
 }
 
 /**
- * Home of a customer (Figma "FloatingNavBar"): the screen of the chosen tab, with a dark
- * navigation bar floating above it. The selected tab is remembered across rotation.
+ * Home of a customer (Figma "FloatingNavBar"): the screen of the chosen tab, with the dark navigation bar
+ * under it. The bar has its own strip at the bottom: no list, map or button lies behind it (feedback of the
+ * lector). The selected tab is remembered across rotation.
  */
 @Composable
 fun CustomerHomeScreen(
@@ -94,43 +96,46 @@ fun CustomerHomeScreen(
 
     // First the explanation of the location (Figma "3 - Locatie-uitleg"), then the tabs.
     LocationGate(viewModel = locationViewModel, state = locationState) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (selectedTab) {
-                CustomerTab.DISCOVER -> DiscoverScreen(
-                    municipality = municipality,
-                    packages = packagesState,
-                    onRetry = packagesViewModel::load,
-                    // The municipality was tapped: go to the map, where a tap chooses another place.
-                    onChangeLocation = {
-                        locationViewModel.onChangeLocation()
-                        selectedTab = CustomerTab.MAP
-                    },
-                    onLogout = onLogout
-                )
-                CustomerTab.MAP -> CustomerMapScreen(
-                    location = locationState,
-                    municipality = municipality,
-                    shops = packagesState.shops,
-                    onLocationChosen = locationViewModel::onLocationChosen,
-                    onLocateClick = {
-                        when (locationState.status) {
-                            LocationStatus.FOUND, LocationStatus.UNAVAILABLE -> locationViewModel.refresh()
-                            // No position shared yet: ask again, starting with the explanation.
-                            LocationStatus.DENIED, LocationStatus.CHOSEN -> locationViewModel.onAskAgain()
-                            LocationStatus.UNKNOWN, LocationStatus.LOADING -> Unit
+        Column(modifier = Modifier.fillMaxSize()) {
+            // The tab takes all the room above the bar.
+            Box(modifier = Modifier.weight(1f)) {
+                when (selectedTab) {
+                    CustomerTab.DISCOVER -> DiscoverScreen(
+                        municipality = municipality,
+                        packages = packagesState,
+                        onRetry = packagesViewModel::load,
+                        // The municipality was tapped: go to the map, where a tap chooses another place.
+                        onChangeLocation = {
+                            locationViewModel.onChangeLocation()
+                            selectedTab = CustomerTab.MAP
+                        },
+                        onLogout = onLogout
+                    )
+                    CustomerTab.MAP -> CustomerMapScreen(
+                        location = locationState,
+                        municipality = municipality,
+                        shops = packagesState.shops,
+                        onLocationChosen = locationViewModel::onLocationChosen,
+                        onLocateClick = {
+                            when (locationState.status) {
+                                LocationStatus.FOUND, LocationStatus.UNAVAILABLE -> locationViewModel.refresh()
+                                // No position shared yet: ask again, starting with the explanation.
+                                LocationStatus.DENIED, LocationStatus.CHOSEN -> locationViewModel.onAskAgain()
+                                LocationStatus.UNKNOWN, LocationStatus.LOADING -> Unit
+                            }
                         }
-                    }
-                )
-                CustomerTab.ORDERS -> PlaceholderScreen(
-                    title = R.string.customer_tab_orders,
-                    text = R.string.customer_orders_placeholder,
-                    onLogout = onLogout
-                )
-                CustomerTab.FAVORITES -> PlaceholderScreen(
-                    title = R.string.customer_tab_favorites,
-                    text = R.string.customer_favorites_placeholder,
-                    onLogout = onLogout
-                )
+                    )
+                    CustomerTab.ORDERS -> PlaceholderScreen(
+                        title = R.string.customer_tab_orders,
+                        text = R.string.customer_orders_placeholder,
+                        onLogout = onLogout
+                    )
+                    CustomerTab.FAVORITES -> PlaceholderScreen(
+                        title = R.string.customer_tab_favorites,
+                        text = R.string.customer_favorites_placeholder,
+                        onLogout = onLogout
+                    )
+                }
             }
 
             FloatingNavBar(
@@ -138,9 +143,8 @@ fun CustomerHomeScreen(
                 selectedIndex = selectedTab.ordinal,
                 onSelect = { selectedTab = CustomerTab.entries[it] },
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
             )
         }
     }

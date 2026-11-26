@@ -170,13 +170,10 @@ fun CustomerMapScreen(
             }
         }
 
-        // Room for the floating navigation bar, which stands on top of the tabs.
-        Spacer(Modifier.height(NAV_BAR_SPACE))
+        // The navigation bar has its own strip under the tab: the map stops just above it.
+        Spacer(Modifier.height(8.dp))
     }
 }
-
-/** Height of the floating navigation bar (68 dp) with its 16 dp margin and 16 dp between the map and the bar. */
-private val NAV_BAR_SPACE = 100.dp
 
 /**
  * The card of a shop on the map (Figma "Winkelkaart"): the shop with the distance and the number of offers,

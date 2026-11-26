@@ -57,7 +57,7 @@ fun DiscoverScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 108.dp) // room for the floating bar
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp)
         ) {
             DiscoverHeader(
                 municipality = municipality,
