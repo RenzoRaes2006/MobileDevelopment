@@ -32,11 +32,12 @@ Doel: de klant ziet de pakketten van de winkels (alleen bekijken), de handelaar 
 ## Keuzes bij de feedback (26/11)
 De branches bouwen op elkaar voort (elk vanaf de vorige, omdat ze allemaal deze planning aanpassen): `fix-remove-personal-data` → `fix-map-not-under-buttons` → de volgende. Mergen in die volgorde.
 - Kaart (punt 1): de opgave zegt niets over de schikking. Gekozen voor de eenvoudigste schikking die bij de Figma blijft: dezelfde zoekbalk en knop, maar boven de kaart in plaats van erop. De tip "Tik op de kaart …" staat ook boven de kaart.
+- Winkellabels (punt 2): de opgave vraagt bij K4 "marker per winkel … tik op marker → winkelnaam + knop Bekijk". De naam staat nu op de marker zelf en bovenaan het kaartje. De knop "Bekijk" ontbreekt nog, omdat het pakketdetail (K7) er nog niet is; een knop die nergens heen gaat, bouwen we niet. De prijs staat nog per aanbieding in het kaartje. `formatPriceShort` en `ShopOffers.fromPriceCents` worden in de app niet meer gebruikt (alleen nog in de tests); weghalen na overleg.
 
 ## Tegen volgende week (2/12)
 Uit de feedback van de lector:
 - [x] De kaart niet over het hele scherm laten lopen, zodat die niet door de knoppen (de navigatiebalk, de zoekbalk en de locatieknop) bedekt wordt — de zoekbalk en de locatieknop staan nu boven de kaart, de kaart is een afgerond vlak dat stopt boven de navigatiebalk; het kaartje van een winkel staat onderaan in de kaart (branch `fix-map-not-under-buttons`)
-- [ ] De locaties op de kaart groter maken en de naam van de winkel tonen in plaats van de prijs
+- [x] De locaties op de kaart groter maken en de naam van de winkel tonen in plaats van de prijs — het label is 48 dp hoog (ook groot genoeg om op te tikken) met de naam in 16 sp; een lange naam wordt afgekort met "…" (branch `fix-map-shop-names`)
 - [ ] Foto's bij pakketten (zie ook de regel hieronder, H4)
 - [ ] De locatie nakijken met "coarse" (bij benadering) en "fine" (specifieke, nauwkeurige) locatie
 - [ ] Kijken of het duidelijker kan met een knop achter de navigatiebalk
