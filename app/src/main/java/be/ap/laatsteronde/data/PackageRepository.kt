@@ -9,7 +9,8 @@ import kotlinx.coroutines.tasks.await
 /**
  * What a merchant fills in for a package (Figma "Pakket aanmaken"). Prices are in whole cents,
  * so there are no rounding errors. The pick-up window is on [pickupDate] ("yyyy-MM-dd"),
- * between [pickupFrom] and [pickupTo] ("HH:mm").
+ * between [pickupFrom] and [pickupTo] ("HH:mm"). [photoBase64] is the photo as JPEG in Base64 (H4), or null
+ * when the merchant did not add one.
  */
 data class PackageDetails(
     val title: String,
@@ -19,7 +20,8 @@ data class PackageDetails(
     val quantity: Int,
     val pickupDate: String,
     val pickupFrom: String,
-    val pickupTo: String
+    val pickupTo: String,
+    val photoBase64: String? = null
 )
 
 /**
@@ -90,7 +92,7 @@ class FirebasePackageRepository(
 
     override suspend fun createPackage(details: PackageDetails) {
         val uid = signedInUid()
-        val data = mapOf(
+        val data = mutableMapOf<String, Any>(
             "ownerId" to uid,
             // The shop of a merchant is stored under the uid of the merchant (shops/{uid}).
             "shopId" to uid,
@@ -105,6 +107,8 @@ class FirebasePackageRepository(
             "visible" to true,
             "createdAt" to FieldValue.serverTimestamp()
         )
+        // Only a package with a photo gets the field: a package without one stays exactly as before.
+        details.photoBase64?.let { data["photoBase64"] = it }
         // A transaction needs the server: without internet it fails at once. A normal write would stay in
         // Firestore's queue and be saved later, after the merchant was told "no internet" and tried again,
         // which gives the same package twice.
@@ -138,7 +142,8 @@ class FirebasePackageRepository(
                 quantity = getLong("quantity")?.toInt() ?: return null,
                 pickupDate = getString("pickupDate") ?: return null,
                 pickupFrom = getString("pickupFrom") ?: return null,
-                pickupTo = getString("pickupTo") ?: return null
+                pickupTo = getString("pickupTo") ?: return null,
+                photoBase64 = getString("photoBase64")
             ),
             visible = getBoolean("visible") ?: false
         )
