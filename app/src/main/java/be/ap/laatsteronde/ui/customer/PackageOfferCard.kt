@@ -3,7 +3,6 @@ package be.ap.laatsteronde.ui.customer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,13 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -27,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.ui.components.PackagePhoto
 import be.ap.laatsteronde.data.Coordinates
 import be.ap.laatsteronde.data.FoodPackage
 import be.ap.laatsteronde.data.PackageDetails
@@ -36,7 +34,6 @@ import be.ap.laatsteronde.data.ShopDetails
 import be.ap.laatsteronde.ui.components.DashedDivider
 import be.ap.laatsteronde.ui.merchant.formatCents
 import be.ap.laatsteronde.ui.theme.CardBorder
-import be.ap.laatsteronde.ui.theme.Kraft
 import be.ap.laatsteronde.ui.theme.OSMTheme
 
 /**
@@ -55,19 +52,12 @@ fun PackageOfferCard(offer: PackageOffer, modifier: Modifier = Modifier) {
             .border(1.dp, CardBorder, shape)
     ) {
         Row(modifier = Modifier.padding(start = 12.dp, end = 14.dp, top = 12.dp, bottom = 12.dp)) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(72.dp)
-                    .background(Kraft, RoundedCornerShape(14.dp))
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_image),
-                    contentDescription = stringResource(R.string.customer_package_photo),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            PackagePhoto(
+                photoBase64 = details.photoBase64,
+                contentDescription = stringResource(R.string.package_photo_of, details.title),
+                cornerRadius = 14.dp,
+                modifier = Modifier.size(72.dp)
+            )
             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                 Text(
                     text = stringResource(

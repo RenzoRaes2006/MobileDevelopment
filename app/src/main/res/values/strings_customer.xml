@@ -30,7 +30,6 @@
     <string name="customer_package_window">Vandaag %1$s – %2$s</string>
     <string name="customer_package_left">Nog %1$d over</string>
     <string name="customer_package_discount">−%1$d%%</string>
-    <string name="customer_package_photo">Nog geen foto</string>
     <string name="error_customer_packages_load_failed">Pakketten laden is mislukt. Probeer het opnieuw.</string>
     <plurals name="customer_map_shops">
         <item quantity="one">%1$d winkel met pakketten</item>

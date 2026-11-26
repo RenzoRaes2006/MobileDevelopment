@@ -16,7 +16,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -25,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -36,13 +34,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.ui.components.PackagePhoto
 import be.ap.laatsteronde.data.FoodPackage
 import be.ap.laatsteronde.data.PackageDetails
 import be.ap.laatsteronde.ui.auth.FieldError
 import be.ap.laatsteronde.ui.components.DashedDivider
 import be.ap.laatsteronde.ui.customer.ProfileMenuButton
 import be.ap.laatsteronde.ui.theme.CardBorder
-import be.ap.laatsteronde.ui.theme.Kraft
 import be.ap.laatsteronde.ui.theme.OSMTheme
 
 /**
@@ -178,7 +176,7 @@ private fun TodayContent(
 }
 
 /**
- * One package of today (Figma "Pakketkaart"): a photo place (the photo comes with H5), the title with the
+ * One package of today (Figma "Pakketkaart"): the photo (H4), the title with the
  * pick-up window and the price, the number of packages, and the switch "Zichtbaar voor klanten".
  */
 @Composable
@@ -195,19 +193,13 @@ private fun PackageCard(item: FoodPackage, onVisibleChange: (Boolean) -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 14.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(Kraft, RoundedCornerShape(12.dp))
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_image),
-                    contentDescription = stringResource(R.string.package_photo_placeholder),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+            PackagePhoto(
+                photoBase64 = details.photoBase64,
+                contentDescription = stringResource(R.string.package_photo_of, details.title),
+                cornerRadius = 12.dp,
+                iconSize = 22.dp,
+                modifier = Modifier.size(52.dp)
+            )
             Column(modifier = Modifier.weight(1f).padding(horizontal = 14.dp)) {
                 Text(
                     text = details.title,

@@ -45,12 +45,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import be.ap.laatsteronde.R
+import be.ap.laatsteronde.ui.components.PackagePhoto
 import be.ap.laatsteronde.data.Coordinates
 import be.ap.laatsteronde.ui.components.DashedDivider
 import be.ap.laatsteronde.ui.map.MapPin
 import be.ap.laatsteronde.ui.map.MarkerMap
 import be.ap.laatsteronde.ui.theme.CardBorder
-import be.ap.laatsteronde.ui.theme.Kraft
 import be.ap.laatsteronde.ui.theme.TextBody
 import be.ap.laatsteronde.ui.theme.isDarkTheme
 
@@ -194,19 +194,18 @@ private fun ShopCard(item: ShopOffers, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp)
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(Kraft, RoundedCornerShape(12.dp))
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_image),
-                    contentDescription = stringResource(R.string.customer_package_photo),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+            // One photo for the shop: the photo of its first offer that has one.
+            val photoOffer = item.offers.firstOrNull { it.pack.details.photoBase64 != null }
+            PackagePhoto(
+                photoBase64 = photoOffer?.pack?.details?.photoBase64,
+                contentDescription = stringResource(
+                    R.string.package_photo_of,
+                    photoOffer?.pack?.details?.title ?: item.shop.details.name
+                ),
+                cornerRadius = 12.dp,
+                iconSize = 22.dp,
+                modifier = Modifier.size(56.dp)
+            )
             Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
                 Text(
                     text = item.shop.details.name,
