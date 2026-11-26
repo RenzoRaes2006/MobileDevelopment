@@ -97,10 +97,23 @@ class AndroidPhotoEncoder(context: Context) : PhotoEncoder {
 /**
  * Turns the Base64 text of a photo back into a picture, or null when the text is not a photo.
  * Call it on Dispatchers.Default and only once per photo: decoding is heavy.
+ *
+ * Anyone with a merchant account can write photoBase64 without our app. A small file can hold a picture of
+ * for example 30 000 x 30 000 px, which would not fit in the memory of the phone and crash the app of every
+ * customer. So we first read only the size and read the picture already smaller, as for the gallery.
  */
 fun decodePhoto(base64: String): Bitmap? = try {
     val bytes = Base64.decode(base64, Base64.NO_WRAP)
-    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+        null // not a picture
+    } else {
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = sampleSizeFor(bounds.outWidth, bounds.outHeight, PHOTO_MAX_SIDE)
+        }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+    }
 } catch (e: IllegalArgumentException) {
     null // not valid Base64
 }
