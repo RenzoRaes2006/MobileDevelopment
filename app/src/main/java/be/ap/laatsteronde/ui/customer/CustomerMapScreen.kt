@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -113,6 +115,19 @@ fun CustomerMapScreen(
                     recenterKey++
                     onLocateClick()
                 }
+            )
+        }
+
+        // Only approximate, or denied for good: say so, with a way to the settings of the app.
+        val notice = when {
+            status == LocationStatus.FOUND && !location.precise -> R.string.location_approximate_notice
+            location.blockedInSettings && canChoose -> R.string.location_blocked_notice
+            else -> null
+        }
+        if (notice != null) {
+            LocationNotice(
+                text = stringResource(notice),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             )
         }
 
@@ -291,6 +306,34 @@ private fun MunicipalityBar(title: String, subtitle: String, modifier: Modifier 
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+        }
+    }
+}
+
+/** A white card with a short message about the location and a button that opens the settings of the app. */
+@Composable
+private fun LocationNotice(text: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 2.dp,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isDarkTheme()) MaterialTheme.colorScheme.onSurface else TextBody,
+                modifier = Modifier.weight(1f)
+            )
+            // A TextButton is at least 48 dp high, large enough to tap.
+            TextButton(onClick = { openAppSettings(context) }) {
+                Text(stringResource(R.string.location_open_settings))
             }
         }
     }

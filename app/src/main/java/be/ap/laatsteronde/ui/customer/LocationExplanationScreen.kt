@@ -42,12 +42,15 @@ import be.ap.laatsteronde.ui.theme.isDarkTheme
 /**
  * Explanation before the system asks for the location (Figma "3 - Locatie-uitleg").
  * "Locatie toestaan" goes on to the system question, "Zelf een locatie kiezen" skips it.
+ * When the customer denied the location for good ([blockedInSettings]), Android no longer shows the question:
+ * the screen says so and the button opens the settings of the app instead.
  */
 @Composable
 fun LocationExplanationScreen(
     onAllow: () -> Unit,
     onChooseOwnLocation: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    blockedInSettings: Boolean = false
 ) {
     val dark = isDarkTheme()
     val bodyColor = if (dark) MaterialTheme.colorScheme.onSurface else TextBody
@@ -109,6 +112,15 @@ fun LocationExplanationScreen(
                 CheckItem(R.string.location_explain_bullet_sorted, bodyColor)
                 CheckItem(R.string.location_explain_bullet_map, bodyColor)
             }
+
+            if (blockedInSettings) {
+                Text(
+                    text = stringResource(R.string.location_blocked_explain),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = bodyColor,
+                    modifier = Modifier.padding(top = 18.dp)
+                )
+            }
         }
 
         Button(
@@ -118,7 +130,12 @@ fun LocationExplanationScreen(
                 .padding(top = 16.dp)
                 .heightIn(min = 52.dp)
         ) {
-            Text(stringResource(R.string.location_explain_allow), style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = stringResource(
+                    if (blockedInSettings) R.string.location_open_settings else R.string.location_explain_allow
+                ),
+                style = MaterialTheme.typography.labelLarge
+            )
         }
         OutlinedButton(
             onClick = onChooseOwnLocation,

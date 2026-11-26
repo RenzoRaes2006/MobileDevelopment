@@ -37,6 +37,10 @@
     <string name="location_explain_allow">Locatie toestaan</string>
     <string name="location_explain_choose">Zelf een locatie kiezen</string>
     <!-- Not in the Figma: tells the customer what to do on the map without a position. -->
+    <string name="location_blocked_explain">Je hebt de locatie eerder geweigerd. Zet ze aan bij Machtigingen › Locatie in de instellingen van de app, of kies zelf een locatie.</string>
+    <string name="location_open_settings">Open instellingen</string>
+    <string name="location_approximate_notice">Je deelt je locatie bij benadering: afstanden kunnen een paar kilometer afwijken.</string>
+    <string name="location_blocked_notice">Locatie staat uit voor deze app. Zet ze aan in de instellingen.</string>
     <string name="location_choose_hint">Tik op de kaart om je locatie te kiezen</string>
 
     <!-- Error messages -->

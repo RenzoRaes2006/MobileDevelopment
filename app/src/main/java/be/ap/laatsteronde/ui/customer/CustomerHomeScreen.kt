@@ -93,7 +93,7 @@ fun CustomerHomeScreen(
     }
 
     // First the explanation of the location (Figma "3 - Locatie-uitleg"), then the tabs.
-    LocationGate(viewModel = locationViewModel, status = locationState.status) {
+    LocationGate(viewModel = locationViewModel, state = locationState) {
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTab) {
                 CustomerTab.DISCOVER -> DiscoverScreen(
