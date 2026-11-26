@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -52,8 +53,8 @@ import be.ap.laatsteronde.ui.theme.TextBody
 import be.ap.laatsteronde.ui.theme.isDarkTheme
 
 /**
- * The map tab (Figma "5 - Kaart"): the map with the position of the customer, a bar with the
- * municipality on top and the round "Naar mijn locatie" button. Every shop with packages is a price
+ * The map tab (Figma "5 - Kaart"): the map with the position of the customer, with above it a bar with
+ * the municipality and the round "Naar mijn locatie" button. Every shop with packages is a price
  * label ("€4") on the map; a tap on it shows a card with the shop at the bottom. The customer can
  * only look at it: the button "Bekijk" of the Figma comes with reserving.
  *
@@ -79,25 +80,13 @@ fun CustomerMapScreen(
         status == LocationStatus.CHOSEN
     val showsPosition = status == LocationStatus.FOUND || status == LocationStatus.CHOSEN
 
-    Box(modifier = modifier.fillMaxSize()) {
-        MarkerMap(
-            position = if (showsPosition) location.location else null,
-            centerOn = location.location,
-            markerIcon = R.drawable.marker_my_location,
-            recenterKey = recenterKey,
-            pins = shops.map { MapPin(it.shop.ownerId, it.shop.details.location, formatPriceShort(it.fromPriceCents)) },
-            selectedPinId = selectedShop?.shop?.ownerId,
-            onPinClick = { selectedShopId = it },
-            onMapTap = { selectedShopId = null },
-            onPositionPicked = if (canChoose) onLocationChosen else null,
-            modifier = Modifier.fillMaxSize()
-        )
-
+    // The bar and the button stand above the map and the map stops above the floating navigation bar,
+    // so no button covers a part of the map (feedback of the lector).
+    Column(modifier = modifier.fillMaxSize()) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .align(Alignment.TopStart)
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
@@ -127,25 +116,52 @@ fun CustomerMapScreen(
             )
         }
 
-        selectedShop?.let { shop ->
-            ShopCard(
-                item = shop,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 108.dp) // above the floating bar
-            )
-        }
-
         if (canChoose) {
             HintChip(
                 text = stringResource(R.string.location_choose_hint),
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 16.dp, top = 76.dp)
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             )
         }
+
+        val mapShape = RoundedCornerShape(20.dp)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clip(mapShape)
+                .border(1.dp, CardBorder, mapShape)
+        ) {
+            MarkerMap(
+                position = if (showsPosition) location.location else null,
+                centerOn = location.location,
+                markerIcon = R.drawable.marker_my_location,
+                recenterKey = recenterKey,
+                pins = shops.map { MapPin(it.shop.ownerId, it.shop.details.location, formatPriceShort(it.fromPriceCents)) },
+                selectedPinId = selectedShop?.shop?.ownerId,
+                onPinClick = { selectedShopId = it },
+                onMapTap = { selectedShopId = null },
+                onPositionPicked = if (canChoose) onLocationChosen else null,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            selectedShop?.let { shop ->
+                ShopCard(
+                    item = shop,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(12.dp)
+                )
+            }
+        }
+
+        // Room for the floating navigation bar, which stands on top of the tabs.
+        Spacer(Modifier.height(NAV_BAR_SPACE))
     }
 }
+
+/** Height of the floating navigation bar (68 dp) with its 16 dp margin and 16 dp between the map and the bar. */
+private val NAV_BAR_SPACE = 100.dp
 
 /**
  * The card of a shop on the map (Figma "Winkelkaart"): the shop with the distance and the number of offers,
