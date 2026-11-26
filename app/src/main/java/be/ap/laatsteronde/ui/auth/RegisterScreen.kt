@@ -308,7 +308,7 @@ private fun RoleCard(
 private fun RegisterContentPreview() {
     OSMTheme(darkTheme = false) {
         RegisterContent(
-            state = RegisterUiState(name = "Marwan Bouchdig", role = UserRole.CUSTOMER),
+            state = RegisterUiState(name = "Jan Peeters", role = UserRole.CUSTOMER),
             onNameChange = {}, onEmailChange = {}, onPasswordChange = {},
             onRoleChange = {}, onRegisterClick = {}, onBack = {}
         )
@@ -321,8 +321,8 @@ private fun RegisterContentErrorPreview() {
     OSMTheme(darkTheme = false) {
         RegisterContent(
             state = RegisterUiState(
-                name = "Marwan Bouchdig",
-                email = "renzo@student.ap.be",
+                name = "Jan Peeters",
+                email = "jan@voorbeeld.be",
                 role = UserRole.MERCHANT,
                 errorMessage = R.string.error_email_in_use
             ),
