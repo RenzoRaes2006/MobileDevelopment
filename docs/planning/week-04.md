@@ -37,6 +37,8 @@ De branches bouwen op elkaar voort (elk vanaf de vorige, omdat ze allemaal deze 
 - Navigatiebalk (punt 4): de feedback is vaag. Gekozen uitleg: wat achter de zwevende balk schuift (de laatste pakketkaart, markers en de eigen positie op de kaart) is onduidelijk, dus krijgt de balk een eigen strook. Dat past bij de opgave, die een gewone "bottom navigation bar" vraagt (Schermen: "Klant: bottom navigation bar met Ontdekken, Kaart, Bestellingen, Favorieten"). Andere mogelijke uitleg: (a) de knop "Bekijk" uit K4 in het kaartje op de kaart (komt met K7, het pakketdetail); (b) de systeemnavigatiebalk van Android (de app houdt daar al rekening mee met `safeDrawingPadding`); (c) de locatieknop naast de navigatiebalk zetten in plaats van bovenaan. Bij de handelaar (Vandaag, Mijn winkel) is niets veranderd, om geen conflict te maken met lopend werk; daar kan het op dezelfde manier.
 - Foto (punt 5): gebaseerd op H4 en technische vereiste 4 van de opgave (TakePicturePreview/PickVisualMedia, 800 px, JPEG ±70, Base64 NO_WRAP, `photoBase64`, `Dispatchers.Default`, niet bij elke recompositie decoderen). Het veld heet `photoBase64` zoals in de opgave; de rest van het datamodel is niet veranderd. Een pakket zonder foto krijgt het veld niet, zodat het ook met de oude regels werkt. Maximum 500 000 tekens (in de app én in de regels): een foto van 800 px is meestal 100 000 – 200 000 tekens en een document mag 1 MiB zijn. Een opgeslagen foto wordt bij het tonen ook verkleind ingelezen, zodat een (via de API geschreven) enorm grote afbeelding de app van de klant niet kan laten crashen. Wat niet in de Figma staat: het kruisje om de foto weg te halen en "Foto verkleinen…" tijdens het werk.
 - Beperking: de camerafoto is klein en korrelig, omdat `TakePicturePreview` (verplicht in de opgave) alleen een voorbeeldbeeld teruggeeft. Een scherpere foto kan met `TakePicture` en een bestand, maar dat vraagt een FileProvider; eerst aan de lector vragen.
+
+## Tegen volgende week (2/12)
 Uit de feedback van de lector:
 - [x] De kaart niet over het hele scherm laten lopen, zodat die niet door de knoppen (de navigatiebalk, de zoekbalk en de locatieknop) bedekt wordt — de zoekbalk en de locatieknop staan nu boven de kaart, de kaart is een afgerond vlak dat stopt boven de navigatiebalk; het kaartje van een winkel staat onderaan in de kaart (branch `fix-map-not-under-buttons`)
 - [x] De locaties op de kaart groter maken en de naam van de winkel tonen in plaats van de prijs — het label is 48 dp hoog (ook groot genoeg om op te tikken) met de naam in 16 sp; een lange naam wordt afgekort met "…" (branch `fix-map-shop-names`)
@@ -55,6 +57,11 @@ Eerder gepland:
 - [ ] **Wacht op Marwan:** de aangepaste `firestore.rules` (veld `photoBase64` toegelaten, max. 500 000 tekens) publiceren. Zolang de oude regels live staan, mislukt "Pakket online zetten" **met** een foto ("Je pakket opslaan is mislukt"); zonder foto werkt het zoals vroeger. Daarna `scripts/test-package-rules.mjs` aanvullen met een pakket met en zonder foto
 - [ ] Filters en de rij "Laatste ronde" op Ontdekken (K3, de rest)
 - [ ] Pakketdetail met beschrijving (K7)
+
+Gevonden bij het nakijken (26/11), Must uit de opgave, nog nergens gepland:
+- [ ] Lijsten realtime met `snapshots()` in plaats van `get()` (K5 bij de klant, H5 bij de handelaar, technische vereiste 2)
+- [ ] Pakketten waarvan het ophaalvenster vandaag al voorbij is, niet meer tonen (K3)
+- [ ] "Vandaag" bij de handelaar: aantal reservaties per pakket (H5, kan pas met reserveren)
 
 ## Tegen de week erna (9/12)
 - [ ] Reserveren, ophaalticket en bestellingen (K8/K9/K10), reservaties bekijken door de handelaar
