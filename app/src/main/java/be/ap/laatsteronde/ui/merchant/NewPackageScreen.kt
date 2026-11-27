@@ -221,20 +221,21 @@ private fun NewPackageContent(
             Spacer(Modifier.height(16.dp))
             FieldLabel(R.string.package_label_window)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // A tap opens a clock: no typing of "18:00" with a colon.
                 LabeledField(R.string.package_label_from, size = 12, modifier = Modifier.weight(1f)) {
-                    FormTextField(
+                    PickupTimeField(
                         value = state.pickupFrom,
-                        onValueChange = onPickupFromChange,
-                        label = stringResource(R.string.package_label_from),
-                        isError = state.timeError != null
+                        label = stringResource(R.string.package_label_from_long),
+                        isError = state.timeError != null,
+                        onTimeChosen = onPickupFromChange
                     )
                 }
                 LabeledField(R.string.package_label_to, size = 12, modifier = Modifier.weight(1f)) {
-                    FormTextField(
+                    PickupTimeField(
                         value = state.pickupTo,
-                        onValueChange = onPickupToChange,
-                        label = stringResource(R.string.package_label_to),
-                        isError = state.timeError != null
+                        label = stringResource(R.string.package_label_to_long),
+                        isError = state.timeError != null,
+                        onTimeChosen = onPickupToChange
                     )
                 }
             }

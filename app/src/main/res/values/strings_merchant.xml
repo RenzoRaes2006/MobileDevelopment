@@ -60,6 +60,12 @@
     <string name="package_label_window">Ophaalvenster (vandaag)</string>
     <string name="package_label_from">Van</string>
     <string name="package_label_to">Tot</string>
+    <string name="package_label_from_long">Ophalen vanaf</string>
+    <string name="package_label_to_long">Ophalen tot</string>
+    <string name="package_time_placeholder">Kies een uur</string>
+    <string name="package_time_field_description">%1$s: %2$s. Tik om een uur te kiezen.</string>
+    <string name="package_time_ok">OK</string>
+    <string name="package_time_cancel">Annuleren</string>
     <string name="package_button_publish">Pakket online zetten</string>
 
     <!-- Package errors (H3) -->

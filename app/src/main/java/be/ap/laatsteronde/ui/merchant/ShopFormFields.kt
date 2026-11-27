@@ -51,7 +51,7 @@ internal fun ShopCategory.labelRes(): Int = when (this) {
     ShopCategory.RESTAURANT -> R.string.shop_category_restaurant
 }
 
-private fun fieldBorder(isError: Boolean, outline: androidx.compose.ui.graphics.Color, error: androidx.compose.ui.graphics.Color) =
+internal fun fieldBorder(isError: Boolean, outline: androidx.compose.ui.graphics.Color, error: androidx.compose.ui.graphics.Color) =
     BorderStroke(if (isError) 2.dp else 1.dp, if (isError) error else outline)
 
 /**
