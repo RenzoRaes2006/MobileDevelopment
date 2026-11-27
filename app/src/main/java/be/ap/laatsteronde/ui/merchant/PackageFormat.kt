@@ -39,6 +39,10 @@ internal fun normalizeTime(text: String): String? {
     return "%02d:%02d".format(Locale.ROOT, hours, minutes)
 }
 
+/** The time now as "HH:mm", in the time zone of the phone: the same form as the pick-up times. */
+internal fun timeNowAsText(now: Date = Date()): String =
+    SimpleDateFormat("HH:mm", Locale.ROOT).format(now)
+
 /** The date of today as "yyyy-MM-dd", in the time zone of the phone. */
 internal fun todayAsText(now: Date = Date()): String =
     SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(now)

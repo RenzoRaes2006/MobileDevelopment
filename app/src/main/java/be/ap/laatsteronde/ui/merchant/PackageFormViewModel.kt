@@ -60,13 +60,14 @@ data class PackageFormUiState(
 
 /**
  * Checks and saves a new package of the signed-in merchant. [today] gives the date of the
- * pick-up window ("yyyy-MM-dd"); it is a parameter so a unit test can use a fixed date.
- * [photoEncoder] makes a photo small and turns it into Base64.
+ * pick-up window ("yyyy-MM-dd") and [currentTime] the time now ("HH:mm"); they are parameters so a unit test
+ * can use a fixed clock. [photoEncoder] makes a photo small and turns it into Base64.
  */
 class PackageFormViewModel(
     private val packageRepository: PackageRepository,
     private val photoEncoder: PhotoEncoder,
-    private val today: () -> String = ::todayAsText
+    private val today: () -> String = ::todayAsText,
+    private val currentTime: () -> String = ::timeNowAsText
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PackageFormUiState())
@@ -150,6 +151,8 @@ class PackageFormViewModel(
         val timeError = when {
             from == null || to == null -> R.string.error_package_time_invalid
             from >= to -> R.string.error_package_window_order // "HH:mm" sorts in the right order as text
+            // A window that is already over can never be picked up (K3: customers only see windows that are not over).
+            to <= currentTime() -> R.string.error_package_window_past
             else -> null
         }
 

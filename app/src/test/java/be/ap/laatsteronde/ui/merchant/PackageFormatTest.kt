@@ -86,4 +86,12 @@ class PackageFormatTest {
         val date = Calendar.getInstance().apply { set(2026, Calendar.NOVEMBER, 5, 12, 0, 0) }.time
         assertEquals("2026-11-05", todayAsText(date))
     }
+
+    @Test
+    fun timeNowAsText_isHoursAndMinutesWithTwoDigits() {
+        val morning = Calendar.getInstance().apply { set(2026, Calendar.NOVEMBER, 5, 9, 5, 0) }.time
+        val evening = Calendar.getInstance().apply { set(2026, Calendar.NOVEMBER, 5, 21, 30, 0) }.time
+        assertEquals("09:05", timeNowAsText(morning)) // "09:05", so it compares in the right order with "18:00"
+        assertEquals("21:30", timeNowAsText(evening))
+    }
 }

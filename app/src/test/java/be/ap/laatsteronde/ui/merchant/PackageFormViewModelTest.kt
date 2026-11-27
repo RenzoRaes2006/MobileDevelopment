@@ -79,7 +79,10 @@ class PackageFormViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = PackageFormViewModel(packages, photos, today = { "2026-11-25" })
+    /** The clock of the test: it is always 14:00, so the windows of the valid form (18:00 - 19:30) are still to come. */
+    private var timeNow = "14:00"
+
+    private fun viewModel() = PackageFormViewModel(packages, photos, today = { "2026-11-25" }, currentTime = { timeNow })
 
     /** A form as in the Figma, with the price lower than the original value. */
     private fun viewModelWithValidForm(): PackageFormViewModel = viewModel().apply {
@@ -267,6 +270,51 @@ class PackageFormViewModelTest {
         viewModel.save()
         assertEquals(R.string.error_package_window_order, viewModel.uiState.value.timeError)
         assertTrue(packages.created.isEmpty())
+    }
+
+    @Test
+    fun windowThatIsAlreadyOver_isRefused() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.onPickupFromChange("06:00")
+        viewModel.onPickupToChange("07:00")
+
+        viewModel.save()
+
+        assertEquals(R.string.error_package_window_past, viewModel.uiState.value.timeError)
+        assertTrue(packages.created.isEmpty())
+    }
+
+    @Test
+    fun windowThatEndsRightNow_isRefused() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.onPickupFromChange("12:00")
+        viewModel.onPickupToChange("14:00") // it is 14:00: nobody can still pick it up
+
+        viewModel.save()
+
+        assertEquals(R.string.error_package_window_past, viewModel.uiState.value.timeError)
+    }
+
+    @Test
+    fun windowThatAlreadyStartedButIsNotOver_isAllowed() {
+        val viewModel = viewModelWithValidForm()
+        viewModel.onPickupFromChange("13:00")
+        viewModel.onPickupToChange("15:00")
+
+        viewModel.save()
+
+        assertNull(viewModel.uiState.value.timeError)
+        assertEquals("15:00", packages.created.single().pickupTo)
+    }
+
+    @Test
+    fun theClockIsReadWhenSaving_notWhenTheFormOpens() {
+        val viewModel = viewModelWithValidForm() // 18:00 - 19:30, made at 14:00
+        timeNow = "19:45" // the merchant waited too long before saving
+
+        viewModel.save()
+
+        assertEquals(R.string.error_package_window_past, viewModel.uiState.value.timeError)
     }
 
     @Test

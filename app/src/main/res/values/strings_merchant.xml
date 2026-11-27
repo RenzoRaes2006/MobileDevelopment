@@ -70,8 +70,9 @@
     <string name="error_package_original_invalid">Vul de originele waarde in, bijvoorbeeld 12,00.</string>
     <string name="error_package_price_not_lower">De prijs moet lager zijn dan de originele waarde.</string>
     <string name="error_package_quantity_invalid">Vul een aantal in van 1 tot 999.</string>
-    <string name="error_package_time_invalid">Vul de tijd in als uur:minuten, bijvoorbeeld 18:00.</string>
+    <string name="error_package_time_invalid">Kies een uur voor het begin en het einde.</string>
     <string name="error_package_window_order">Het einde moet na het begin liggen.</string>
+    <string name="error_package_window_past">Dit ophaalvenster is al voorbij. Kies een einde dat later is dan nu.</string>
     <string name="error_photo_unreadable">Deze foto kon niet gelezen worden. Kies een andere foto.</string>
     <string name="error_photo_too_large">Deze foto is te groot. Kies een andere foto.</string>
     <string name="error_camera_unavailable">Er is geen camera-app op dit toestel. Kies een foto uit de galerij.</string>
