@@ -139,6 +139,13 @@ try {
   check('an extra field is refused', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { secret: str('x') }))]), false);
   check('a createdAt of the client is refused', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { createdAt: { timestampValue: '2020-01-01T00:00:00Z' } }), { serverTime: false })]), false);
 
+  console.log('--- photo (H4, needs the rules with photoBase64)');
+  check('a photo as Base64 text is allowed', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { photoBase64: str('/9j/4AAQSkZJRg==') }))]), true);
+  check('a photo of 500 000 characters is allowed', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { photoBase64: str(longText(500000)) }))]), true);
+  check('a photo of 500 001 characters is refused', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { photoBase64: str(longText(500001)) }))]), false);
+  check('an empty photo is refused', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { photoBase64: str('') }))]), false);
+  check('a photo that is not text is refused', await commit(merchant.token, [createWrite(newId(), validFields(merchant.uid, { photoBase64: int(5) }))]), false);
+
   console.log('--- read');
   check('customer can read a package', await read(customer.token, mainId), true);
   check('nobody signed in cannot read a package', await read(null, mainId), false);
