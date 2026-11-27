@@ -58,6 +58,10 @@ Eerder gepland:
 - [ ] Filters en de rij "Laatste ronde" op Ontdekken (K3, de rest)
 - [ ] Pakketdetail met beschrijving (K7)
 
+Om te testen (27/11, branch `feature-test-seed`, vanaf `feature-H4-package-photo`):
+- [x] `scripts/seed-test-packages.mjs` zet met één commando testpakketten voor vandaag online bij het testaccount van de handelaar: een gewoon pakket, één dat nog maar 1 keer over is, een titel van 60 tekens, een offline pakket en één waarvan het ophaalvenster al voorbij is; met `--photos` ook twee met een (verzonnen, getekende) testfoto. Alle titels beginnen met "Test · "; het script haalt eerst de oude testpakketten weg (geen dubbels) en `--clean` haalt ze alleen weg. Getest op het live project: de vijf pakketten zonder foto lukken, de twee met foto worden geweigerd zolang de nieuwe regels niet gepubliceerd zijn (zoals verwacht)
+- [x] `scripts/test-package-rules.mjs` heeft 5 nieuwe gevallen voor de foto (`photoBase64` als tekst, max. 500 000 tekens, niet leeg); die slagen pas na het publiceren van de regels
+
 Gevonden bij het nakijken (26/11), Must uit de opgave, nog nergens gepland:
 - [ ] Lijsten realtime met `snapshots()` in plaats van `get()` (K5 bij de klant, H5 bij de handelaar, technische vereiste 2)
 - [ ] Pakketten waarvan het ophaalvenster vandaag al voorbij is, niet meer tonen (K3)
